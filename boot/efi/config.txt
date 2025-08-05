@@ -1,0 +1,37 @@
+[all]
+arm_64bit=1
+dtparam=audio=off,i2c_arm=on,spi=on
+dtoverlay=mmc
+dtoverlay=pwm
+
+device_tree_address=0x4000
+kernel=u-boot.bin
+enable_uart=1
+
+
+# Should help w/ clock stability
+# As well as thermals
+arm_freq=600
+
+
+# Minimum GPU RAM allocation
+# We don't need graphics on this :P
+gpu_mem=16mb
+
+
+
+[pi4]
+armstub=armstub8-gic.bin
+dtoverlay=pps-gpio,gpiopin=4
+
+# Only support U1 and faster Micro SD cards
+dtparam=sd_overclock=100
+
+# Force higher screen resolution
+#framebuffer_width=1280
+#framebuffer_height=720
+
+hdmi_safe=1
+hdmi_force_hotplug=1
+hdmi_group=1
+hdmi_mode=4
