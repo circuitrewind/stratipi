@@ -4,6 +4,17 @@
 
 
 ################################################################################
+# Documentation References:
+#
+# https://gpsd.gitlab.io/gpsd/gpsd_json.html
+# https://docs.checkmk.com/latest/en/localchecks.html
+# https://github.com/Checkmk/checkmk/blob/2.4.0/cmk/gui/plugins/metrics/unit.py
+################################################################################
+
+
+
+
+################################################################################
 # Import ALL THE THINGS!
 ################################################################################
 import subprocess
