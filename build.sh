@@ -3,6 +3,7 @@
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 IMAGE=$SCRIPT_DIR/stratipi.img
+IMAGE_SIZE=7G
 
 ABI=FreeBSD:15:aarch64
 OSVERSION=1500000
@@ -32,7 +33,7 @@ done
 
 
 # CREATE A NEW MEMORY DEVICE FOR THE IMAGE FILE
-truncate -s 7G $IMAGE
+truncate -s $IMAGE_SIZE $IMAGE
 DEVICE=$(mdconfig -a -t vnode -f $IMAGE)
 
 
