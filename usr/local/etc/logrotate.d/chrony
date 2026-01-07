@@ -1,0 +1,9 @@
+/var/log/chrony/*.log {
+    missingok
+    nocreate
+    sharedscripts
+    nocompress
+    postrotate
+        /usr/local/bin/chronyc cyclelogs > /dev/null 2>&1 || true
+    endscript
+}
