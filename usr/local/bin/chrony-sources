@@ -1,0 +1,4 @@
+#!/bin/sh
+
+gnu-watch -n1 chronyc sources
+
