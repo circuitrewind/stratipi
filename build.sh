@@ -5,7 +5,8 @@ SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 IMAGE=$SCRIPT_DIR/stratipi.img
 IMAGE_SIZE=7G
 
-ABI=FreeBSD:15:aarch64
+ARCH=aarch64
+ABI=FreeBSD:15:$ARCH
 OSVERSION=1500000
 ZPOOL=stratipi-test
 
@@ -45,7 +46,7 @@ gpart add -t freebsd $DEVICE
 
 
 # CREATE AND MOUNT THE ZPOOL/ZFS FILE SYSTEM
-zpool create \
+zpool create -f \
   -o ashift=12 \
   -O recordsize=16M \
   -O compression=zstd \
@@ -56,6 +57,15 @@ zpool create \
 newfs_msdos -F 32 -c 1 "/dev/${DEVICE}s1"
 mkdir -p /$ZPOOL/boot/efi
 mount -t msdosfs "/dev/${DEVICE}s1" "/$ZPOOL/boot/efi"
+
+
+# CREATE A LOCAL CACHE DIR OUTSIDE OF STRATIPI BUILDER
+# THIS ALSO SPEEDS UP REBUILDING STRATIPI FOR DEVELOPMENT
+mkdir -p /var/cache/stratipi/$ARCH/repos/
+mkdir -p /$ZPOOL/var/cache/
+#mkdir -p /$ZPOOL/var/db/pkg/
+ln -s /var/cache/stratipi/$ARCH/ /$ZPOOL/var/cache/pkg
+#ln -s /var/cache/stratipi/$ARCH/repos/ /$ZPOOL/var/db/pkg/repos
 
 
 
@@ -79,5 +89,16 @@ pkg -r /$ZPOOL -o REPOS_DIR=/$ZPOOL/etc/pkg install -y \
   FreeBSD-kernel-generic
 
 
+
+# INSTALL STRATIPI
+for f in *; do
+    [ "$f" = "stratipi.img" ] && continue
+    [ "$f" = "build.sh" ] && continue
+    cp -r "$f" /$ZPOOL/
+done
+
+
 # SET ZFS PROPERTIES TO SOMETHING SANE FOR NORMAL USAGE
 zfs set recordsize=128k $ZPOOL
+
+
