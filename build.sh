@@ -91,9 +91,9 @@ pkg -r /$ZPOOL -o REPOS_DIR=/$ZPOOL/etc/pkg install -y \
 
 
 # INSTALL STRATIPI
-for f in *; do
-    [ "$f" = "stratipi.img" ] && continue
-    [ "$f" = "build.sh" ] && continue
+for f in $SCRIPT_DIR/*; do
+    [ $(basename -- "$f") = "stratipi.img" ] && continue
+    [ $(basename -- "$f") = "build.sh" ] && continue
     cp -r "$f" /$ZPOOL/
 done
 
