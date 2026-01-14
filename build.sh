@@ -103,8 +103,9 @@ export OSVERSION
 
 # INSTALL PACKAGES
 pkg -r /$ZPOOL -o REPOS_DIR=/$ZPOOL/etc/pkg install -y \
+  FreeBSD-kernel-generic \
   FreeBSD-set-minimal \
-  FreeBSD-kernel-generic
+  FreeBSD-bsdconfig
 
 
 
