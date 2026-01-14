@@ -54,7 +54,7 @@ zpool create -f \
 
 
 # CREATE AND MOUNT THE MSDOS FAT32 FILE SYSTEM
-newfs_msdos -F 32 -c 1 "/dev/${DEVICE}s1"
+newfs_msdos -F 32 -c 1 -L "STRATIPI" "/dev/${DEVICE}s1"
 mkdir -p /$ZPOOL/boot/efi
 mount -t msdosfs "/dev/${DEVICE}s1" "/$ZPOOL/boot/efi"
 
