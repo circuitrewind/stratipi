@@ -1,0 +1,3 @@
+# Custom /etc/fstab for FreeBSD embedded images
+/dev/msdosfs/STRATIPI		/boot/efi	msdosfs	rw,noatime	0	0
+tmpfs			/tmp		tmpfs	rw,mode=1777	0	0
