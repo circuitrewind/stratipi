@@ -13,9 +13,6 @@ ABI=FreeBSD:15:$ARCH
 OSVERSION=1500000
 ZPOOL=stratipi-test
 
-export ABI
-export OSVERSION
-
 
 # UNMOUNT MSDOS FAST32 BOOT PARTITION
 if mount | grep -q "on /$ZPOOL/boot/efi "; then
@@ -30,7 +27,9 @@ fi
 
 
 # DESTROY THE OLD MEMORY DEVICE(s) FOR THE IMAGE FILE
+set +e
 DEVICE=$(mdconfig -l -f $IMAGE)
+set -e
 for DEV in $DEVICE; do
 	mdconfig -d -u $DEV
 done
@@ -42,7 +41,7 @@ DEVICE=$(mdconfig -a -t vnode -f $IMAGE)
 
 
 # RECREATE PARTITION TABLE FROM SCRATCH
-gpart destroy -F $DEVICE
+gpart destroy -F $DEVICE || true
 gpart create -s mbr $DEVICE
 gpart add -t fat32 -s 100M $DEVICE
 gpart add -t freebsd $DEVICE
@@ -92,6 +91,13 @@ mkdir -p /$ZPOOL/etc/pkg
 cp /etc/pkg/FreeBSD.conf /$ZPOOL/etc/pkg
 sed -i '' 's/: no/: yes/' /$ZPOOL/etc/pkg/FreeBSD.conf
 sed -i '' 's/quarterly"/latest"/' /$ZPOOL/etc/pkg/FreeBSD.conf
+
+
+# WARNING, DON'T MOVE THIS EARLIER IN THE SCRIPT
+# OR ELSE YOU RISK BREAKING YOUR ENTIRE OPERATING SYSTEM
+export ABI
+export OSVERSION
+
 
 # INSTALL PACKAGES
 pkg -r /$ZPOOL -o REPOS_DIR=/$ZPOOL/etc/pkg install -y \
