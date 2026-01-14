@@ -4,7 +4,9 @@ set -e
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 IMAGE=$SCRIPT_DIR/stratipi.img
-IMAGE_SIZE=7G
+#IMAGE_SIZE=7G
+IMAGE_SIZE=3G  # temporary while debugging initially to build faster
+
 
 ARCH=aarch64
 ABI=FreeBSD:15:$ARCH
