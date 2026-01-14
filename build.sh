@@ -60,6 +60,13 @@ mkdir -p /$ZPOOL/boot/efi
 mount -t msdosfs "/dev/${DEVICE}s1" "/$ZPOOL/boot/efi"
 
 
+# INSTALL THE RASPBERRY PI FIRMWARE LOCALLY
+# AND COPY THE CONTENTS TO OUR MSDOS PARTITION
+pkg install -y rpi-firmware
+cp -r /usr/local/share/rpi-firmware/* /$ZPOOL/boot/efi/
+
+
+
 # CREATE A LOCAL CACHE DIR OUTSIDE OF STRATIPI BUILDER
 # THIS ALSO SPEEDS UP REBUILDING STRATIPI FOR DEVELOPMENT
 mkdir -p /var/cache/stratipi/$ARCH/repos/
@@ -101,5 +108,3 @@ done
 
 # SET ZFS PROPERTIES TO SOMETHING SANE FOR NORMAL USAGE
 zfs set recordsize=128k $ZPOOL
-
-
