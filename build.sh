@@ -114,5 +114,14 @@ for f in $SCRIPT_DIR/*; do
 done
 
 
+# INSTALL THE BOOTLOADER
+mkdir -p /$ZPOOL/boot/efi/EFI/BOOT/
+cp /$ZPOOL/boot/loader.efi /$ZPOOL/boot/efi/EFI/BOOT/bootaa64.efi
+
+
+# CLEANUP TEMPORARY CACHE SYMLINK
+rm /$ZPOOL/var/cache/pkg
+
+
 # SET ZFS PROPERTIES TO SOMETHING SANE FOR NORMAL USAGE
 zfs set recordsize=128k $ZPOOL
