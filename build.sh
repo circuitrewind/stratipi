@@ -51,6 +51,7 @@ gpart add -t freebsd $DEVICE
 zpool create -f \
   -o ashift=12 \
   -o autoexpand=on \
+  -o autotrim=on \
   -O recordsize=16M \
   -O compression=zstd \
   $ZPOOL "/dev/${DEVICE}s2"
