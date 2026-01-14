@@ -50,6 +50,7 @@ gpart add -t freebsd $DEVICE
 # CREATE AND MOUNT THE ZPOOL/ZFS FILE SYSTEM
 zpool create -f \
   -o ashift=12 \
+  -o autoexpand=on \
   -O recordsize=16M \
   -O compression=zstd \
   $ZPOOL "/dev/${DEVICE}s2"
