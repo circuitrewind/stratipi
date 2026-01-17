@@ -124,7 +124,7 @@ cp /$ZPOOL/boot/loader.efi /$ZPOOL/boot/efi/EFI/BOOT/bootaa64.efi
 
 
 # CREATE ZPOOL SCRUB CRONJOB
-mkdir -f /$ZPOOL/etc/cron.d/
+mkdir -p /$ZPOOL/etc/cron.d/
 echo "@daily	root	/sbin/zpool scrub $ZPOOL" > /$ZPOOL/etc/cron.d/scrub
 
 
