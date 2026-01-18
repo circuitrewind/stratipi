@@ -1,0 +1,30 @@
+#FreeBSD Minimal pkgbase Packages
+FreeBSD-kernel-generic
+FreeBSD-set-minimal
+
+#Extra FreeBSD pkgbase Packages
+FreeBSD-bsdconfig
+FreeBSD-ssh
+FreeBSD-pf
+FreeBSD-ipf
+FreeBSD-ipfw
+
+#Extra Helper Stuff
+ca_root_nss
+zfs-stats
+git-lite
+eza
+nano
+screen
+tmux
+
+#System Monitoring
+bsdinfo
+btop
+htop
+ncdu2
+
+#Stratipi Specific NTP Awesomeness
+chrony
+gpsd-nox11
+gnu-watch

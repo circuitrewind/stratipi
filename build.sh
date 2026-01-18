@@ -102,18 +102,15 @@ export OSVERSION
 
 
 # INSTALL PACKAGES
-pkg -r /$ZPOOL -o REPOS_DIR=/$ZPOOL/etc/pkg install -y \
-  FreeBSD-kernel-generic \
-  FreeBSD-set-minimal \
-  FreeBSD-bsdconfig \
-  FreeBSD-ssh
-
+PACKAGES=$(sed 's/#.*//' pkglist)
+pkg -r /$ZPOOL -o REPOS_DIR=/$ZPOOL/etc/pkg install -y $PACKAGES
 
 
 # INSTALL STRATIPI
 for f in $SCRIPT_DIR/*; do
     [ $(basename -- "$f") = "stratipi.img" ] && continue
     [ $(basename -- "$f") = "build.sh" ] && continue
+    [ $(basename -- "$f") = "pkglist" ] && continue
     cp -r "$f" /$ZPOOL/
 done
 
