@@ -11,7 +11,7 @@ IMAGE_SIZE=3G  # temporary while debugging initially to build faster
 ARCH=aarch64
 ABI=FreeBSD:15:$ARCH
 OSVERSION=1500000
-ZPOOL=stratipi-test
+ZPOOL=stratipi
 
 
 # UNMOUNT MSDOS FAST32 BOOT PARTITION
