@@ -27,11 +27,7 @@ dtoverlay=pps-gpio,gpiopin=4
 # Only support U1 and faster Micro SD cards
 dtparam=sd_overclock=100
 
-# Force higher screen resolution
-#framebuffer_width=1280
-#framebuffer_height=720
-
-hdmi_safe=1
+# HDMI Resolution 1280x720
 hdmi_force_hotplug=1
 hdmi_group=1
 hdmi_mode=4
