@@ -107,6 +107,7 @@ pkg -r /$ZPOOL -o REPOS_DIR=/$ZPOOL/etc/pkg install -y $PACKAGES
 
 
 # INSTALL STRATIPI
+touch var/db/last_time
 for f in $SCRIPT_DIR/*; do
     [ $(basename -- "$f") = "stratipi.img" ] && continue
     [ $(basename -- "$f") = "build.sh" ] && continue
