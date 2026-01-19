@@ -35,8 +35,13 @@ for DEV in $DEVICE; do
 done
 
 
-# CREATE A NEW MEMORY DEVICE FOR THE IMAGE FILE
+# REMOVE THE OLD IMAGE FILE IF IT STILL EXISTS
+set +e
 rm $IMAGE
+set -e
+
+
+# CREATE A NEW MEMORY DEVICE FOR THE IMAGE FILE
 truncate -s $IMAGE_SIZE $IMAGE
 DEVICE=$(mdconfig -a -t vnode -f $IMAGE)
 
@@ -134,3 +139,9 @@ rm /$ZPOOL/var/cache/pkg
 
 # SET ZFS PROPERTIES TO SOMETHING SANE FOR NORMAL USAGE
 zfs set recordsize=128k $ZPOOL
+
+
+# UNMOUNT THE IMAGE
+umount "/$ZPOOL/boot/efi"
+zpool export $ZPOOL
+
