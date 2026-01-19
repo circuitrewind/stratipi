@@ -36,6 +36,7 @@ done
 
 
 # CREATE A NEW MEMORY DEVICE FOR THE IMAGE FILE
+rm $IMAGE
 truncate -s $IMAGE_SIZE $IMAGE
 DEVICE=$(mdconfig -a -t vnode -f $IMAGE)
 
