@@ -1,0 +1,25 @@
+#!/bin/sh
+# PROVIDE: save_time
+# REQUIRE: FILESYSTEMS
+# BEFORE: chronyd
+
+. /etc/rc.subr
+name="save_time"
+start_cmd="save_time_start"
+stop_cmd="save_time_stop"
+
+save_time_start() {
+	if [ -f /var/db/last_time ]; then
+		echo "Restoring time from /var/db/last_time"
+		NEW_TIME=$(/usr/bin/stat -f "%Sm" -t "%Y%m%d%H%M.%S" /var/db/last_time)
+		/bin/date "${NEW_TIME}"
+	fi
+}
+
+save_time_stop() {
+	echo "Saving current time to /var/db/last_time"
+	touch /var/db/last_time
+}
+
+load_rc_config $name
+run_rc_command "$1"
