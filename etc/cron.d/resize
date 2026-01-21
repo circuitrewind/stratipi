@@ -1,2 +1,2 @@
-@reboot		root	/sbin/gpart resize -i mmcsd0
+@reboot		root	/bin/sh /sbin/zresize.sh
 
