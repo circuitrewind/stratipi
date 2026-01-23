@@ -2,9 +2,12 @@
 # PROVIDE: save_time
 # REQUIRE: FILESYSTEMS
 # BEFORE: chronyd
+# KEYWORD: shutdown
 
 . /etc/rc.subr
 name="save_time"
+rcvar="save_time_enable"
+
 start_cmd="save_time_start"
 stop_cmd="save_time_stop"
 
