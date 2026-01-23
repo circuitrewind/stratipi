@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -eu
 
 
 ZPOOL=stratipi
@@ -12,58 +12,70 @@ OSVERSION=1500000
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 IMAGE=$SCRIPT_DIR/${ZPOOL}.img
 PARTITION=mbr
+DEVICE=""
 
 
+# PRETTY PRINT A STATUS LINE
 println() {
-	printf "\n[$LABEL] %s\n" "$*"
+	printf "\n\033[32m[\033[34m$LABEL\033[32m]\033[1;37m %s\033[0m\n" "$*"
 }
+
+
+# SAFER WAY TO UNMOUNT AND BAIL ON ERROR
+safe_umount() {
+	if mount | awk '{print $3}' | grep -qx "$1"; then
+		println "Unmounting: $1"
+		umount "$1" || {
+			echo "ERROR: failed to unmount $1" >&2
+			exit 1
+		}
+	fi
+}
+
+
+# SAFER WAY TO ZPOOL EXPORT AND BAIL ON ERROR
+safe_export() {
+	if zpool list -H -o name 2>/dev/null | grep -qx "$1"; then
+		println "Exporting zpool: $1"
+		zpool export "$1" || {
+			echo "ERROR: failed to export zpool $1" >&2
+			zpool status "$1" >&2 || true
+			exit 1
+		}
+	fi
+}
+
+
+# DO ALL THE CLEANUP STUFF
+cleanup() {
+	println "Running cleanup job ..."
+	safe_umount "/$ZPOOL/boot/efi" || true
+	safe_export $ZPOOL || true
+	mdconfig -d -u $DEVICE 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
+
+
 
 # THINGS WE'LL NEED LATER ON IN THE SCRIPT
 println "Installing local build dependencies"
 pkg install -y rpi-firmware
 
 
-# UNMOUNT MSDOS FAST32 BOOT PARTITION
-if mount | grep -q "on /$ZPOOL/boot/efi "; then
-	println "Unmounting: /$ZPOOL/boot/efi"
-	umount "/$ZPOOL/boot/efi"
-fi
-
-
-# DESTROY ZPOOL IF IT ALREADY EXISTS
-if zpool list $ZPOOL >/dev/null 2>&1; then
-	println "Unmounting: $ZPOOL"
-	zpool destroy $ZPOOL
-fi
-
-
-# DESTROY THE OLD MEMORY DEVICE(s) FOR THE IMAGE FILE
-set +e
-DEVICE=$(mdconfig -l -f $IMAGE)
-set -e
-for DEV in $DEVICE; do
-	println "Destroying device: $DEV"
-	mdconfig -d -u $DEV
-done
-
-
 # REMOVE THE OLD IMAGE FILE IF IT STILL EXISTS
-set +e
-rm $IMAGE
-rm $IMAGE.zst
-set -e
+rm $IMAGE || true
+rm $IMAGE.zst || true
 
 
 # CREATE A NEW MEMORY DEVICE FOR THE IMAGE FILE
 println "Creating $IMAGE of size $IMAGE_SIZE"
 truncate -s $IMAGE_SIZE $IMAGE
 DEVICE=/dev/$(mdconfig -a -t vnode -f $IMAGE)
-println "New Device: $DEVICE"
+println "New Memory Device: $DEVICE"
 
 
 # RECREATE PARTITION TABLE FROM SCRATCH
 println "Creating $PARTITION partition table on $DEVICE"
-gpart destroy -F $DEVICE || true
 gpart create -s $PARTITION $DEVICE
 if [ "$PARTITION" = "mbr" ]; then
 	gpart add -a 1M -t fat32 -s 100M $DEVICE
@@ -146,15 +158,21 @@ export OSVERSION
 
 # INSTALL PACKAGES
 println "Installing FreeBSD pkgbase and user packages"
-PACKAGES=$(sed 's/#.*//' pkglist)
+PACKAGES=$(sed 's/#.*//' $SCRIPT_DIR/pkglist)
+[ -n "$PACKAGES" ] || { println "No packages to install!"; exit 1; }
 pkg -r /$ZPOOL -o REPOS_DIR=/$ZPOOL/etc/pkg install -y $PACKAGES
+
+
+# STORE PACKAGES/VERSIONS USED FOR THE BUILD IN AN AUDIT LOG
+pkg -r /$ZPOOL query '%n-%v' > /$SCRIPT_DIR/pkg-manifest.txt
 
 
 # INSTALL STRATIPI
 println "Installer $ZPOOL files"
-touch var/db/last_time
+touch $SCRIPT_DIR/var/db/last_time
 for f in $SCRIPT_DIR/*; do
     [ $(basename -- "$f") = "stratipi.img" ] && continue
+    [ $(basename -- "$f") = "stratipi.img.zstd" ] && continue
     [ $(basename -- "$f") = "build.sh" ] && continue
     [ $(basename -- "$f") = "pkglist" ] && continue
     cp -r "$f" /$ZPOOL/
@@ -174,7 +192,6 @@ mkdir -p /$ZPOOL/etc/cron.d/
 echo "@daily	root	/sbin/zpool scrub $ZPOOL" > /$ZPOOL/etc/cron.d/scrub
 
 
-
 # CLEANUP TEMPORARY CACHE SYMLINK
 println "Unlinking package cache"
 rm /$ZPOOL/var/cache/pkg
@@ -185,11 +202,9 @@ println "Setting 'sane' zpool options for daily usage"
 zfs set recordsize=128k $ZPOOL
 
 
-# UNMOUNT THE IMAGE
-println "Unmounting partitions"
-umount "/$ZPOOL/boot/efi"
-zpool export $ZPOOL
-mdconfig -d -u $DEVICE
+# CLEANUP ALL THE TEMPORARY STUFF WE DID
+cleanup
+trap - EXIT INT TERM
 
 
 # CREATE A COMPRESSED DEPLOYABLE IMAGE
