@@ -53,8 +53,19 @@ cleanup() {
 	safe_export $ZPOOL || true
 	mdconfig -d -u $DEVICE 2>/dev/null || true
 }
-trap cleanup EXIT INT TERM
 
+
+# ALLOW TO RUN PARTS OF THIS SCRIPT AUTOMAGICALLY
+case "${1-}" in
+    "clean")
+        cleanup
+        exit 0
+        ;;
+esac
+
+
+# INSTALL OUR TRAPS LATE, IN CASE OF CUSTOM COMMAND ABOVE
+#trap cleanup EXIT INT TERM
 
 
 # THINGS WE'LL NEED LATER ON IN THE SCRIPT
@@ -102,8 +113,7 @@ zpool create -f \
   -O recordsize=16M \
   -O compression=zstd \
   $ZPOOL "${DEVICE}${SLICE}2"
-
-#  -o autoexpand=on \
+zpool list $ZPOOL
 
 
 # CREATE AND MOUNT THE MSDOS FAT32 FILE SYSTEM
@@ -152,6 +162,8 @@ sed -i '' 's/quarterly"/latest"/' /$ZPOOL/etc/pkg/FreeBSD.conf
 
 # WARNING, DON'T MOVE THIS EARLIER IN THE SCRIPT
 # OR ELSE YOU RISK BREAKING YOUR ENTIRE OPERATING SYSTEM
+METALOG=/$ZPOOL/$ZPOOL.metalog
+export METALOG
 export ABI
 export OSVERSION
 
@@ -164,7 +176,13 @@ pkg -r /$ZPOOL -o REPOS_DIR=/$ZPOOL/etc/pkg install -y $PACKAGES
 
 
 # STORE PACKAGES/VERSIONS USED FOR THE BUILD IN AN AUDIT LOG
-pkg -r /$ZPOOL query '%n-%v' > /$SCRIPT_DIR/pkg-manifest.txt
+pkg -r /$ZPOOL query '%n-%v' > $SCRIPT_DIR/pkg-manifest.txt
+
+
+# FIX FILE/FOLDER PERMISSIONS FOR CUSTOM USERS
+println "Fixing file and folder permissions"
+$SCRIPT_DIR/uid.sh $METALOG /$ZPOOL
+rm $METALOG
 
 
 # INSTALL STRATIPI
