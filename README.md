@@ -1,4 +1,11 @@
-# Stratipi
+```
+███████╗████████╗██████╗  █████╗ ████████╗██╗██████╗ ██╗
+██╔════╝╚══██╔══╝██╔══██╗██╔══██╗╚══██╔══╝██║██╔══██╗██║
+███████╗   ██║   ██████╔╝███████║   ██║   ██║██████╔╝██║
+╚════██║   ██║   ██╔══██╗██╔══██║   ██║   ██║██╔═══╝ ██║
+███████║   ██║   ██║  ██║██║  ██║   ██║   ██║██║     ██║
+╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝╚═╝     ╚═╝
+```
 
 Stratipi turns a Raspberry Pi into a highly accurate Stratum-1 NTP network time server by using a connected GPS receiver under FreeBSD.
 
@@ -14,7 +21,7 @@ Stratipi turns a Raspberry Pi into a highly accurate Stratum-1 NTP network time 
 
 ## Hardware Requirements
 
-* Raspberry Pi 4 (other board support will come in the future)
+* [Raspberry Pi 4](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) (other board support will come in the future)
 * [Adafruit Ultimate GPS HAT for Raspberry Pi](https://www.adafruit.com/product/2324)
 * GPS Antenna
 * Ethernet/network connectivity (wired only, no wireless)
@@ -38,6 +45,17 @@ Stratipi turns a Raspberry Pi into a highly accurate Stratum-1 NTP network time 
 
 Contributions are welcome.
 Please submit issues and pull requests ot make Stratipi more AWESOME!
+
+---
+
+## Compiling / Building
+
+On a FreeBSD 15.0 or newer system, run the following:
+```
+git clone https://github.com/circuitrewind/stratipi.git
+cd stratipi
+./build.sh
+```
 
 ---
 
