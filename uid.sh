@@ -55,36 +55,86 @@ BEGIN {
 }
 
 {
-    path = $1
-    uname = gname = ""
+	# STRIP LEADING WHITE-SPACE BEFORE PARSING
+	sub(/^[ \t]+/, "", $0)
 
+	# THE FIRST VALUE IS THE PATH
+    path = $1
+
+	# SANITIZE THE PATH VALUE
+	gsub(/\\s/, " ", path)
+	gsub(/\\t/, "\t", path)
+	gsub(/\\n/, "\n", path)
+	gsub(/\\#/, "#", path)
+	gsub(/\\\\/, "\\", path)
+	gsub(/"/, "\\\"", path)
+
+	# VALIDATE PATHS
+	if (substr(path,1,2) != "./") {
+		print "ERROR: path does not start with ./ : " path > "/dev/stderr"
+		exit 1
+	}
+
+	# HARDEN PATH AGAINST /../ ROOT ESCAPES
+	if (path ~ /(^|\/)\.\.(\/|$)/) {
+		print "ERROR: path escapes image root: " path > "/dev/stderr"
+		exit 1
+	}
+
+	# PARSE LINE LOOKING FOR USER NAME AND GROUP NAME
+    uname = gname = ""
     for (i = 2; i <= NF; i++) {
         split($i, kv, "=")
         if (kv[1] == "uname") uname = kv[2]
         else if (kv[1] == "gname") gname = kv[2]
     }
 
-    # Skip default ownership entirely
+    # WE DONT NEED TO CHANGE ROOT/WHEEL, ITS ALREADY SET
     if (uname == "root" && gname == "wheel")
         next
 
+	# LOOK UP UID AND GID
     uid = (uname != "" && uname in passwd) ? passwd[uname] : ""
     gid = (gname != "" && gname in group) ? group[gname] : ""
 
-    # Nothing resolvable → nothing to do
+	# BAIL IF UID NOT FOUND
+	if (uname != "" && uid == "") {
+		print "ERROR: unknown user in metalog: " uname " for path: " path > "/dev/stderr"
+		exit 1
+	}
+
+	# BAIL IF GID NOT FOUND
+	if (gname != "" && gid == "") {
+		print "ERROR: unknown group in metalog: " gname " for path: " path > "/dev/stderr"
+		exit 1
+	}
+
+    # NOTHING RESOLVABLE > NOTHING TO DO
     if (uid == "" && gid == "")
         next
 
+	# LOGGING
+	printf substr(path, 2) " - " uname "(" uid ") " gname "(" gid ")\n"
+
+	# FULL PATH WITH OUR ROOT
     fullpath = root "/" substr(path, 3)
 
-    cmd = "chown "
+	# CHOWN ALL THE THINGS!
+    cmd = "chown -h "
     if (uid != "") cmd = cmd uid
     cmd = cmd ":"
     if (gid != "") cmd = cmd gid
     cmd = cmd " \"" fullpath "\""
 
-	printf cmd "\n"
-    system(cmd)
+	# EXECUTE CHOWN COMMAND
+	rc = (cmd | getline dummy)
+	close(cmd)
+
+	# WAIT, IT FAILED? LETS BAIL!
+	if (rc != 0) {
+		print "ERROR: chown failed: " cmd > "/dev/stderr"
+		exit 1
+	}
 }
 ' "$METALOG"
 
