@@ -65,7 +65,7 @@ esac
 
 
 # INSTALL OUR TRAPS LATE, IN CASE OF CUSTOM COMMAND ABOVE
-#trap cleanup EXIT INT TERM
+trap cleanup EXIT INT TERM
 
 
 # THINGS WE'LL NEED LATER ON IN THE SCRIPT
@@ -110,8 +110,10 @@ println "Creating zpool: $ZPOOL on ${DEVICE}${SLICE}2"
 zpool create -f \
   -o ashift=12 \
   -o autotrim=on \
+  -O atime=off \
   -O recordsize=16M \
-  -O compression=zstd \
+  -O compression=zstd-9 \
+  -O sync=disabled \
   $ZPOOL "${DEVICE}${SLICE}2"
 zpool list $ZPOOL
 
@@ -217,7 +219,11 @@ rm /$ZPOOL/var/cache/pkg
 
 # SET ZFS PROPERTIES TO SOMETHING SANE FOR NORMAL USAGE
 println "Setting 'sane' zpool options for daily usage"
-zfs set recordsize=128k $ZPOOL
+zfs set \
+  compression=on \
+  recordsize=128k \
+  sync=standard \
+  $ZPOOL
 
 
 # CLEANUP ALL THE TEMPORARY STUFF WE DID
