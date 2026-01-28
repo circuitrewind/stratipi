@@ -23,7 +23,7 @@ Stratipi turns a Raspberry Pi into a highly accurate Stratum-1 NTP network time 
 
 * [Raspberry Pi 4](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) (other board support will come in the future)
 * [Adafruit Ultimate GPS HAT for Raspberry Pi](https://www.adafruit.com/product/2324)
-* GPS Antenna
+* External GPS Antenna (optional, for better signal)
 * Ethernet/network connectivity (wired only, no wireless)
 * SD card (industrial card recommended)
 
