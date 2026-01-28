@@ -1,0 +1,2 @@
+@daily		root	/usr/local/sbin/logrotate	/usr/local/etc/logrotate.conf
+
