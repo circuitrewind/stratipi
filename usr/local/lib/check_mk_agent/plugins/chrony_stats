@@ -1,0 +1,82 @@
+#!/bin/sh
+
+# GET THE STATUS FROM CHRONY
+DATA=$(/usr/local/bin/chronyc -c tracking)
+
+# PARSE OUT THE CSV OUTPUT FROM CHRONY
+REFID=$(echo "$DATA" | cut -d, -f2 | sed 's/[^a-zA-Z0-9.-]//g')
+STRATUM=$(echo "$DATA" | cut -d, -f3)
+OFF_SYS=$(echo "$DATA" | cut -d, -f5)
+OFF_RMS=$(echo "$DATA" | cut -d, -f7)
+FREQ=$(echo "$DATA" | cut -d, -f8)
+RESID=$(echo "$DATA" | cut -d, -f9)
+SKEW=$(echo "$DATA" | cut -d, -f10)
+DISP=$(echo "$DATA" | cut -d, -f12)
+LEAP=$(echo "$DATA" | cut -d, -f14)
+
+
+################################################################################
+# Stratum & Sync Logic
+################################################################################
+S_ST=0
+S_MSG="OK: Stratum 1 (GPS/PPS Lock)"
+
+if [ "$LEAP" = "Unsynchronised" ]; then
+    S_ST=2
+    S_MSG="CRITICAL: Clock is unsynchronised"
+elif [ "$STRATUM" -eq 1 ]; then
+    S_ST=0
+    S_MSG="OK: Stratum 1 ($REFID)"
+elif [ "$STRATUM" -gt 1 ] && [ "$STRATUM" -lt 16 ]; then
+    S_ST=1
+    S_MSG="WARNING: Operating on Fallback (Stratum $STRATUM, $REFID)"
+else
+    S_ST=2
+    S_MSG="CRITICAL: Invalid Stratum ($STRATUM)"
+fi
+echo "$S_ST \"Chrony stratum\" stratum=$STRATUM $S_MSG"
+
+
+################################################################################
+# RMS Offset
+################################################################################
+O_ST=0
+[ "$(echo "$OFF_RMS > 0.00005" | bc -l)" -eq 1 ] && O_ST=1
+[ "$(echo "$OFF_RMS > 0.00015" | bc -l)" -eq 1 ] && O_ST=2
+OFF_RMS=$(echo "($OFF_RMS) * 1000 * 1000" | bc -l)
+printf "$O_ST \"Chrony RMS offset\" rms=%g;50;150 RMS offset is %gus\n" $OFF_RMS $OFF_RMS
+
+
+################################################################################
+# 2. System Offset
+################################################################################
+OFF_SYS=$(echo "($OFF_SYS) * 1000 * 1000" | bc -l)
+printf "0 \"Chrony system offset\" offset=%g System offset is %gus\n" $OFF_SYS $OFF_SYS
+
+
+################################################################################
+# 3. Frequency
+################################################################################
+echo "0 \"Chrony frequency\" freq=$FREQ Current frequency is $FREQ ppm"
+
+
+################################################################################
+# 4. Frequency Skew
+################################################################################
+K_ST=0
+[ "$(echo "$SKEW > 5.0" | bc -l)" -eq 1 ] && K_ST=1
+[ "$(echo "$SKEW > 10.0" | bc -l)" -eq 1 ] && K_ST=2
+echo "$K_ST \"Chrony frequency skew\" skew=$SKEW;5;10 Current skew is $SKEW ppm"
+
+
+################################################################################
+# 5. Residual Frequency
+################################################################################
+echo "0 \"Chrony residual frequency\" resid=$RESID Residual frequency is $RESID ppm"
+
+
+################################################################################
+# 6. Root Dispersion
+################################################################################
+DISP=$(echo "($DISP) * 1000 * 1000" | bc -l)
+printf "0 \"Chrony root dispersion\" disp=%g;100;500 Root dispersion is %gus\n" $DISP $DISP
