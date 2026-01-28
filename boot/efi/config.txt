@@ -9,11 +9,6 @@ kernel=u-boot.bin
 enable_uart=1
 
 
-# Should help w/ clock stability
-# As well as thermals
-arm_freq=600
-
-
 # Minimum GPU RAM allocation
 # We don't need graphics on this :P
 gpu_mem=16mb
