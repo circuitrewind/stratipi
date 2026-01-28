@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
 	if data['sky'] is None:
 		print(f'2 "GPS source" - Device used to aquire source data: UNKNOWN')
-		print(f'P "GPS satellites" used={used};4:;2:;0;32|visible=0 Used Satellites: NONE')
+		print(f'P "GPS satellites" used=0;4:;2:;0;32|visible=0 Used Satellites: NONE')
 
 
 
