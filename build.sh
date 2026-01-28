@@ -188,7 +188,7 @@ rm $METALOG
 
 
 # INSTALL STRATIPI
-println "Installer $ZPOOL files"
+println "Installing $ZPOOL files"
 touch $SCRIPT_DIR/var/db/last_time
 for f in $SCRIPT_DIR/*; do
     [ $(basename -- "$f") = "stratipi.img" ] && continue
