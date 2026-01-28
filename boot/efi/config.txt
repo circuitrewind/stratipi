@@ -9,6 +9,12 @@ kernel=u-boot.bin
 enable_uart=1
 
 
+# Allow the CPU to reach its maximum rated speed
+# And prevent idling down
+arm_boost=1
+force_turbo=1
+
+
 # Minimum GPU RAM allocation
 # We don't need graphics on this :P
 gpu_mem=16mb
