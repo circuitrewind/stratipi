@@ -191,10 +191,7 @@ rm $METALOG
 println "Installing $ZPOOL files"
 touch $SCRIPT_DIR/var/db/last_time
 for f in $SCRIPT_DIR/*; do
-    [ $(basename -- "$f") = "stratipi.img" ] && continue
-    [ $(basename -- "$f") = "stratipi.img.zstd" ] && continue
-    [ $(basename -- "$f") = "build.sh" ] && continue
-    [ $(basename -- "$f") = "pkglist" ] && continue
+    [ -f $(basename -- "$f") ] && continue
     cp -r "$f" /$ZPOOL/
 done
 
