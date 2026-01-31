@@ -9,6 +9,8 @@
 
 Stratipi turns a Raspberry Pi into a highly accurate Stratum-1 NTP network time server by using a connected GPS receiver under FreeBSD.
 
+[![Stratipi Introduction YouTube Video](https://img.youtube.com/vi/gMqUo6gZD1M/hqdefault.jpg)](https://www.youtube.com/watch?v=gMqUo6gZD1M)
+
 ---
 
 ## Features
