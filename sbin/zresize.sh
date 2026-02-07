@@ -149,7 +149,7 @@ dd if=/dev/zero of="$DISK" bs="$SECTOR_SIZE" seek="$CLEAR_SEEK" count="$CLEAR_SE
 sync
 
 echo "Resizing partition ${VDEV}"
-gpart resize -a 1M -s "$NEW_SIZE" -i "$SLICE" "$DISK"
+gpart resize -a 4M -s "$NEW_SIZE" -i "$SLICE" "$DISK"
 
 echo "Expanding zpool size"
 zpool online -e "$ZPOOL" "${VDEV}"

@@ -89,12 +89,12 @@ println "New Memory Device: $DEVICE"
 println "Creating $PARTITION partition table on $DEVICE"
 gpart create -s $PARTITION $DEVICE
 if [ "$PARTITION" = "mbr" ]; then
-	gpart add -a 1M -t fat32 -s 100M $DEVICE
-	gpart add -a 1M -t freebsd $DEVICE
+	gpart add -a 4M -t fat32 -s 100M $DEVICE
+	gpart add -a 4M -t freebsd $DEVICE
 	SLICE=s
 elif [ "$PARTITION" = "gpt" ]; then
-	gpart add -a 1M -t ms-basic-data -s 100M -l "EFIBOOT" $DEVICE
-	gpart add -a 1M -t freebsd-zfs -l "${LABEL}" $DEVICE
+	gpart add -a 4M -t ms-basic-data -s 100M -l "EFIBOOT" $DEVICE
+	gpart add -a 4M -t freebsd-zfs -l "${LABEL}" $DEVICE
 	SLICE=p
 else
 	println "Unknown Partition Table Type"
