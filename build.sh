@@ -134,14 +134,14 @@ cp -r /usr/local/share/rpi-firmware/* /$ZPOOL/boot/efi/
 
 
 
-# CREATE A LOCAL CACHE DIR OUTSIDE OF STRATIPI BUILDER
-# THIS ALSO SPEEDS UP REBUILDING STRATIPI FOR DEVELOPMENT
+# CREATE A LOCAL CACHE DIR OUTSIDE OF THIS BUILDER
+# THIS ALSO SPEEDS UP REBUILDING THE IMAGE FOR DEVELOPMENT
 println "Setting up local package cache on host machine"
-mkdir -p /var/cache/stratipi/$ARCH/repos/
+mkdir -p /var/cache/$ZPOOL/$ARCH/repos/
 mkdir -p /$ZPOOL/var/cache/
 #mkdir -p /$ZPOOL/var/db/pkg/
-ln -s /var/cache/stratipi/$ARCH/ /$ZPOOL/var/cache/pkg
-#ln -s /var/cache/stratipi/$ARCH/repos/ /$ZPOOL/var/db/pkg/repos
+ln -s /var/cache/$ZPOOL/$ARCH/ /$ZPOOL/var/cache/pkg
+#ln -s /var/cache/$ZPOOL/$ARCH/repos/ /$ZPOOL/var/db/pkg/repos
 
 
 
@@ -187,7 +187,7 @@ $SCRIPT_DIR/uid.sh $METALOG /$ZPOOL
 rm $METALOG
 
 
-# INSTALL STRATIPI
+# INSTALL THE OVERLAY FILESYSTEM
 println "Installing $ZPOOL files"
 touch $SCRIPT_DIR/var/db/last_time
 for f in $SCRIPT_DIR/*; do
