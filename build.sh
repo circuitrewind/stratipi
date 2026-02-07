@@ -109,7 +109,7 @@ fi
 println "Creating zpool: $ZPOOL on ${DEVICE}${SLICE}2"
 zpool create -f \
   -o ashift=12 \
-  -o autotrim=on \
+  -o autotrim=off \
   -O atime=off \
   -O recordsize=16M \
   -O compression=zstd-9 \
@@ -203,10 +203,11 @@ mkdir -p /$ZPOOL/boot/efi/EFI/BOOT/
 cp /$ZPOOL/boot/loader.efi /$ZPOOL/boot/efi/EFI/BOOT/bootaa64.efi
 
 
-# CREATE ZPOOL SCRUB CRONJOB
-println "Creating daily zpool scrub cron job"
+# CREATE ZPOOL SCRUB/TRIM CRONJOB
+println "Creating zpool scrub and trim cron jobs"
 mkdir -p /$ZPOOL/etc/cron.d/
-echo "@daily	root	/sbin/zpool scrub $ZPOOL" > /$ZPOOL/etc/cron.d/scrub
+echo "@daily	root	/sbin/zpool scrub $ZPOOL" > /$ZPOOL/etc/cron.d/$ZPOOL
+echo "@weekly	root	/sbin/zpool trim $ZPOOL" >> /$ZPOOL/etc/cron.d/$ZPOOL
 
 
 # CLEANUP TEMPORARY CACHE SYMLINK
