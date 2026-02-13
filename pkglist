@@ -10,6 +10,7 @@ FreeBSD-ipf
 FreeBSD-ipfw
 
 #Extra Helper Stuff
+python
 logrotate
 ca_root_nss
 zfs-stats
