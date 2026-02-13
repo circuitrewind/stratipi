@@ -21,6 +21,13 @@ gpu_mem=16mb
 
 
 
+[pi3]
+# Move stable UART to GPIO pins 14/15
+dtoverlay=pps-gpio,gpiopin=4
+core_freq=250
+
+
+
 [pi4]
 armstub=armstub8-gic.bin
 dtoverlay=pps-gpio,gpiopin=4
