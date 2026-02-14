@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import serial, time
+
+baud_4800   = b"\r\n$PMTK251,4800*14\r\n"
+baud_9600   = b"\r\n$PMTK251,9600*17\r\n"
+baud_19200  = b"\r\n$PMTK251,19200*22\r\n"
+baud_38400  = b"\r\n$PMTK251,38400*27\r\n"
+baud_57600  = b"\r\n$PMTK251,57600*2C\r\n"
+baud_115200 = b"\r\n$PMTK251,115200*1F\r\n"
+
+poll_1hz    = b"\r\n$PMTK220,1000*1F\r\n"
+poll_2hz    = b"\r\n$PMTK220,500*2B\r\n"
+poll_5hz    = b"\r\n$PMTK220,200*2C\r\n"
+poll_10hz   = b"\r\n$PMTK220,100*2F\r\n"
+
+rmc_only    = b"\r\n$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n"
+rmc_gga     = b"\r\n$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n"
+rmc_all     = b"\r\n$PMTK314,-1*04\r\n"
+
+
+# FORCE CHANGE FROM 4,800 TO 115,200 BAUD
+ser = serial.Serial("/dev/cuau0", 4800, timeout=1)
+ser.write(baud_115200)
+time.sleep(0.25)
+ser.close()
+
+# FORCE CHANGE FROM 9,600 TO 115,200 BAUD
+ser = serial.Serial("/dev/cuau0", 9600, timeout=1)
+ser.write(baud_115200)
+time.sleep(0.25)
+ser.close()

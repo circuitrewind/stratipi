@@ -1,0 +1,16 @@
+#!/bin/sh
+# PROVIDE: gpsd_baud
+# REQUIRE: FILESYSTEMS devfs
+# BEFORE: gpsd
+
+. /etc/rc.subr
+
+name="gpsd_baud"
+start_cmd="gpsd_baud_start"
+
+gpsd_baud_start() {
+    /usr/local/bin/python /sbin/gps_baud
+}
+
+load_rc_config $name
+run_rc_command "$1"
