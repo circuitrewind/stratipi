@@ -3,6 +3,7 @@ arm_64bit=1
 dtparam=audio=off,i2c_arm=on,spi=on
 dtoverlay=mmc
 dtoverlay=pwm
+dtoverlay=disable-wifi
 
 device_tree_address=0x4000
 kernel=u-boot.bin
@@ -20,16 +21,14 @@ force_turbo=1
 gpu_mem=16mb
 
 
-
-[pi3]
+# Overlays for GPS UART and PPS
+dtoverlay=disable-bt
 dtoverlay=pps-gpio,gpiopin=4
-core_freq=250
 
 
 
 [pi4]
 armstub=armstub8-gic.bin
-dtoverlay=pps-gpio,gpiopin=4
 
 # Only support U1 and faster Micro SD cards
 dtparam=sd_overclock=100
