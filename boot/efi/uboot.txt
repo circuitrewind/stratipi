@@ -14,8 +14,8 @@ kernel_addr_r=0x00080000
 loadaddr=0x1000000
 
 # UART Config
-baudrate=115200
-bootdelay=-2
+baudrate=19200
+bootdelay=2
 stderr=vidconsole
 stdin=usbkbd
 stdout=vidconsole
