@@ -1,7 +1,6 @@
 [all]
 arm_64bit=1
 dtparam=audio=off,i2c_arm=on,spi=on
-dtoverlay=mmc
 dtoverlay=pwm
 dtoverlay=disable-wifi
 
