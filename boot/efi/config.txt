@@ -4,7 +4,6 @@ dtparam=audio=off,i2c_arm=on,spi=on
 dtoverlay=pwm
 dtoverlay=disable-wifi
 
-device_tree_address=0x4000
 kernel=u-boot.bin
 enable_uart=1
 
