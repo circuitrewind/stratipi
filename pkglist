@@ -22,7 +22,6 @@ tmux
 
 #System Monitoring
 bsdinfo
-btop
 htop
 ncdu2
 
