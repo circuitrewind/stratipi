@@ -132,6 +132,9 @@ zpool create -f \
   -t $POOL \
   -R $ZROOT \
   $ZPOOL "${DEVICE}${SLICE}2"
+
+zpool set bootfs=$POOL $POOL
+
 { set +x; } 2>/dev/null
 zpool list $POOL
 
