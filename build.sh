@@ -14,6 +14,7 @@ LABEL=$(echo "$ZPOOL" | tr '[:lower:]' '[:upper:]')
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 IMAGE=$SCRIPT_DIR/${ZPOOL}.img
+COMPRESS=${1:-"zstd-9"}
 PARTITION=mbr
 DEVICE=""
 ROOT=""
@@ -127,7 +128,7 @@ zpool create -f \
   -o autotrim=off \
   -O atime=off \
   -O recordsize=16M \
-  -O compression=zstd-9 \
+  -O compression=$COMPRESS \
   -O sync=disabled \
   -t $POOL \
   -R $ZROOT \
