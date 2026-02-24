@@ -1,6 +1,6 @@
 #!/bin/sh
 # PROVIDE: gpsd_baud
-# REQUIRE: FILESYSTEMS devfs
+# REQUIRE: FILESYSTEMS devfs chronyd
 # BEFORE: gpsd
 
 . /etc/rc.subr
