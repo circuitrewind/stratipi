@@ -153,7 +153,7 @@ mount -t msdosfs "${DEVICE}${SLICE}1" "$ROOT/boot/efi"
 
 # COPY RASPBERRY PI FIRMWARE TO OUR EFIBOOT PARTITION
 println "Copying firmware to EFI partition"
-cp -vr /usr/local/share/rpi-firmware/* $ROOT/boot/efi/
+cp -vR /usr/local/share/rpi-firmware/* $ROOT/boot/efi/
 
 
 
@@ -171,15 +171,15 @@ ln -s /var/cache/$ZPOOL/$ARCH/ $ROOT/var/cache/pkg
 # PREPARE FREEBSD PKG KEYS
 println "Setting up package repositories"
 mkdir -p $ROOT/usr/share/keys/pkg/trusted
-cp /usr/share/keys/pkg/trusted/* $ROOT/usr/share/keys/pkg/trusted/
+cp -v /usr/share/keys/pkg/trusted/* $ROOT/usr/share/keys/pkg/trusted/
 
 # PREPARE FREEBSD PKG-BASE KEYS
 mkdir -p $ROOT/usr/share/keys/pkgbase-15/trusted
-cp /usr/share/keys/pkgbase-15/trusted/* $ROOT/usr/share/keys/pkgbase-15/trusted/
+cp -v /usr/share/keys/pkgbase-15/trusted/* $ROOT/usr/share/keys/pkgbase-15/trusted/
 
 # PREPARE FREEBSD PKG CONFIGURATION
 mkdir -p $ROOT/etc/pkg
-cp /etc/pkg/FreeBSD.conf $ROOT/etc/pkg
+cp -v /etc/pkg/FreeBSD.conf $ROOT/etc/pkg
 sed -i '' 's/: no/: yes/' $ROOT/etc/pkg/FreeBSD.conf
 sed -i '' 's/quarterly"/latest"/' $ROOT/etc/pkg/FreeBSD.conf
 
@@ -215,7 +215,7 @@ println "Installing $ZPOOL files"
 touch $SCRIPT_DIR/var/db/last_time
 for f in $SCRIPT_DIR/*; do
     [ -f $(basename -- "$f") ] && continue
-    cp -vr "$f" $ROOT
+    cp -vRP "$f" $ROOT
 done
 
 
