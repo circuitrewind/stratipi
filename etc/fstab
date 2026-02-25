@@ -1,3 +1,7 @@
-# Custom /etc/fstab for FreeBSD embedded images
-/dev/msdosfs/EFIBOOT		/boot/efi	msdosfs	rw,noatime	0	0
-tmpfs			/tmp		tmpfs	rw,mode=1777	0	0
+# Raspberry Pi Bootloader Partition
+/dev/msdosfs/EFIBOOT		/boot/efi	msdosfs	rw,noatime		0	0
+
+# Some RAM filesystems for /tmp and /var/run
+# These are cleared and reset at powerdown
+tmpfs						/tmp		tmpfs	rw,mode=1777	0	0
+tmpfs						/var/run	tmpfs	rw,mode=0755	0	0
