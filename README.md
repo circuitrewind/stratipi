@@ -48,6 +48,10 @@ Stratipi turns a Raspberry Pi into a highly accurate Stratum-1 NTP network time 
 5. ...
 6. PROFIT!
 
+The Raspberry Pi will attempt to acquire an IPv4 address via DHCP automatically.
+
+`Chrony` NTP server will also start serving time as soon as the OS fully boots up, synced to other public NTP servers to start with. As soon as GPS signal is fully locked and registering in `gpsd`, `Chrony` will shift time syncronization over to `GPS`+`PPS` automatically. 
+
 ---
 
 ## Contributing
