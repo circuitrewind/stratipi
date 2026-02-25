@@ -23,8 +23,14 @@ Stratipi turns a Raspberry Pi into a highly accurate Stratum-1 NTP network time 
 
 ## Hardware Requirements
 
-* [Raspberry Pi 4](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) (other board support will come in the future)
-* [Adafruit Ultimate GPS HAT for Raspberry Pi](https://www.adafruit.com/product/2324)
+* Compatible Single Board Computer
+  * [Raspberry Pi 3 Model B](https://www.raspberrypi.com/products/raspberry-pi-3-model-b/)
+  * [Raspberry Pi 3 Model B+](https://www.raspberrypi.com/products/raspberry-pi-3-model-b-plus/)
+  * [Raspberry Pi 4 Model B](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)
+  * More coming soon!
+* Compatible GPS Receiver
+  * [Adafruit Ultimate GPS HAT for Raspberry Pi](https://www.adafruit.com/product/2324)
+  * More in the future..?
 * External GPS Antenna (optional, for better signal)
 * Ethernet/network connectivity (wired only, no wireless)
 * SD card (industrial card recommended)
@@ -33,6 +39,7 @@ Stratipi turns a Raspberry Pi into a highly accurate Stratum-1 NTP network time 
 
 ## Installation
 
+0. Download the Stratipi image file from [Releases](https://github.com/circuitrewind/stratipi/releases).
 1. Flash Stratipi image onto the SD card.
 2. Insert flashed SD card into the Raspberry Pi.
 3. Attach the GPS HAT to the Raspberry Pi.
@@ -58,6 +65,7 @@ git clone https://github.com/circuitrewind/stratipi.git
 cd stratipi
 ./build.sh
 ```
+Yes, it is literally that simple and easy to run the build process to generate your own disk image file!
 
 ---
 
