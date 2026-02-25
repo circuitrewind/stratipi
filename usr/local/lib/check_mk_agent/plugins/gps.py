@@ -115,13 +115,5 @@ if __name__ == "__main__":
 		if tpv['mode'] == 3: status = '3D GPS Lock'
 		print(f'P "GPS lock" mode={tpv["mode"]};2:;1:;0;3 {status}')
 
-		print(f'0 "GPS location" lat={tpv["lat"]}|lon={tpv["lon"]} GPS Coordinates: {tpv["lat"]}, {tpv["lon"]}')
-
-		if 'altHAE' in tpv:
-			print(f'0 "GPS altitude" altitude={tpv["altHAE"]}meters GPS Altitude: {tpv["altHAE"]} meters')
-
-		if 'time' in tpv:
-			print(f'0 "GPS fix" time={tpv["time"]} GPS Fix Timestamp: {tpv["time"]}')
-
 	if data['tpv'] is None:
 		print(f'P "GPS lock" mode=0;2:;1:;0;3 No GPS Lock Available')
