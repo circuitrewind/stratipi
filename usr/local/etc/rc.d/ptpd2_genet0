@@ -1,0 +1,16 @@
+#!/bin/sh
+# PROVIDE: ptpd2_genet0
+# REQUIRE: NETWORKING syslogd chronyd
+# KEYWORD: nojail
+
+. /etc/rc.subr
+
+name="ptpd2_genet0"
+rcvar="ptpd2_genet0_enable"
+command="/usr/local/sbin/ptpd2"
+
+# Load the config from rc.conf
+load_rc_config $name
+
+# Use the flags you defined in rc.conf
+run_rc_command "$1"

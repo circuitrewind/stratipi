@@ -28,4 +28,5 @@ ncdu2
 #Stratipi Specific NTP Awesomeness
 chrony
 gpsd-nox11
+ptpd2
 gnu-watch
