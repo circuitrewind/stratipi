@@ -19,6 +19,8 @@ rmc_only    = b"\r\n$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n"
 rmc_gga     = b"\r\n$PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*28\r\n"
 rmc_all     = b"\r\n$PMTK314,-1*04\r\n"
 
+stationary	= b"\r\n$PMTK386,0.2*3F\r\n"
+
 
 # STANDARDIZE SERIAL GPS COMMAND EXECUTION
 def gpscmd(port, baud, command):
@@ -32,9 +34,11 @@ def gpscmd(port, baud, command):
 if os.path.exists('/dev/cuau0'):
 	gpscmd('cuau0', 9600, baud_115200)
 	gpscmd('cuau0', 115200, rmc_gga)
+	gpscmd('cuau0', 115200, stationary)
 
 
 # FORCE CHANGE FROM 9,600 TO 115,200 BAUD
 if os.path.exists('/dev/cuau1'):
 	gpscmd('cuau1', 9600, baud_115200)
 	gpscmd('cuau1', 115200, rmc_gga)
+	gpscmd('cuau1', 115200, stationary)
