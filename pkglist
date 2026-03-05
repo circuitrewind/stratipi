@@ -3,6 +3,7 @@ FreeBSD-kernel-generic
 FreeBSD-set-minimal
 
 #Extra FreeBSD pkgbase Packages
+FreeBSD-console-tools
 FreeBSD-bsdconfig
 FreeBSD-ssh
 FreeBSD-pf
@@ -30,3 +31,4 @@ chrony
 gpsd-nox11
 ptpd2
 gnu-watch
+tty-clock
