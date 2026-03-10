@@ -136,7 +136,7 @@ if __name__ == "__main__":
 			sig_avg	= sum(signals) / len(signals)
 			sig_min	= min(signals)
 			sig_max	= max(signals)
-			print(f'P "GPS signal" avg={sig_avg:.2f};25:;20:;0;50|min={sig_min:.2f};;;0;50|max={sig_max:.2f};;;0;50 '
+			print(f'P "GPS signal" avg={sig_avg:.2f};25:;15:;0;50|min={sig_min:.2f};;;0;50|max={sig_max:.2f};;;0;50 '
 					f'Signal Strength: Avg={sig_avg:.1f}, Min={sig_min:.1f}, Max={sig_max:.1f} dB-Hz')
 		else:
 			print(f'2 "GPS signal" avg=0;25:;20:;0;50|min=0;20:;15:;0;50|max=0;0;0;0;50 Signal Strength: NO SIGNAL')
