@@ -4,7 +4,7 @@ set -eu
 
 ZPOOL=stratipi
 
-IMAGE_SIZE=2G
+IMAGE_SIZE=3G
 
 ARCH=aarch64
 ABI=FreeBSD:15:$ARCH
@@ -14,11 +14,22 @@ LABEL=$(echo "$ZPOOL" | tr '[:lower:]' '[:upper:]')
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 IMAGE=$SCRIPT_DIR/${ZPOOL}.img
-COMPRESS=${1:-"zstd-9"}
+LOG_FILE=$SCRIPT_DIR/${ZPOOL}.log
 PARTITION=mbr
 DEVICE=""
 ROOT=""
 POOL=""
+
+
+# PARSE COMMAND LINE FOR OPTIONAL THINGS
+COMPRESS=${compress:-"zstd-9"}
+LOGGING=${log:-0}
+while getopts :lc: opt; do
+	case "$opt" in
+		c) COMPRESS="$OPTARG" ;;
+		l) LOGGING=1 ;;
+	esac
+done
 
 
 # PRETTY PRINT A STATUS LINE
@@ -72,6 +83,13 @@ esac
 
 # INSTALL OUR TRAPS LATE, IN CASE OF CUSTOM COMMAND ABOVE
 trap cleanup EXIT INT TERM
+
+
+
+# THE MAIN BODY OF THE SCRIPT BEGINS HERE
+# WRAPPED IN A FUCTION TO SUPPORT OUR LOGGER BETTER
+build() {
+
 
 
 # CREATE OUR TEMPORARY DIRECTORY
@@ -258,3 +276,20 @@ trap - EXIT INT TERM
 # CREATE A COMPRESSED DEPLOYABLE IMAGE
 println "Compressing final binary disk image"
 zstd --fast=1 -T0 $IMAGE -o $IMAGE.zst
+
+
+# END OUR CUSTOM BUILD FUNCTION
+}
+
+
+# LOG STUFF TO FILE AND CONSOLE BOTH AT THE SAME TIME
+# FILTER OUT COLORS FROM LOG FILE THOUGH
+if [ "$LOGGING" -eq 1 ]; then
+	ESC=$(printf '\033')
+	> "$LOG_FILE"
+	build  2>&1 | tee /dev/tty | sed -e "s/${ESC}\[[0-9;]*[mK]//g" > "$LOG_FILE"
+
+# JUST RUN THE SCRIPT NORMALLY IF NOT IN "LOGGING" MODE
+else
+	build
+fi
