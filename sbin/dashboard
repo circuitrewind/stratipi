@@ -1,0 +1,60 @@
+#!/bin/sh
+
+# Create a new tmux session with our current width/height
+/usr/local/bin/tmux new-session -d -s dashboard -x 148 -y 39
+
+# Split the session into multiple panes
+/usr/local/bin/tmux split-window -h -t dashboard
+/usr/local/bin/tmux split-window -v -t dashboard:0.0
+/usr/local/bin/tmux split-window -v -t dashboard:0.1
+/usr/local/bin/tmux split-window -v -t dashboard:0.2
+/usr/local/bin/tmux split-window -v -t dashboard:0.4
+/usr/local/bin/tmux resize-pane -t dashboard:0.0 -y 8
+/usr/local/bin/tmux resize-pane -t dashboard:0.2 -y 13
+/usr/local/bin/tmux resize-pane -t dashboard:0.3 -y 1
+/usr/local/bin/tmux resize-pane -t dashboard:0.4 -y 10
+/usr/local/bin/tmux resize-pane -t dashboard:0.5 -x 80
+
+# Top-Left
+/usr/local/bin/tmux select-pane -t dashboard:0.0
+/usr/local/bin/tmux select-pane -P 'bg=black,fg=blue'
+
+# Mid-Top-Left
+/usr/local/bin/tmux select-pane -t dashboard:0.1
+/usr/local/bin/tmux select-pane -P 'bg=black,fg=white'
+
+# Mid-Bottom-Left
+/usr/local/bin/tmux select-pane -t dashboard:0.2
+/usr/local/bin/tmux select-pane -P 'bg=black,fg=white'
+
+# Bottom-Left
+/usr/local/bin/tmux select-pane -t dashboard:0.3
+/usr/local/bin/tmux select-pane -P 'bg=black,fg=white'
+
+# Top-Right
+/usr/local/bin/tmux select-pane -t dashboard:0.4
+/usr/local/bin/tmux select-pane -P 'bg=black,fg=white'
+
+# Bottom-Right
+/usr/local/bin/tmux select-pane -t dashboard:0.5
+/usr/local/bin/tmux select-pane -P 'bg=black,fg=white'
+
+# Launch all the things!!!
+/usr/local/bin/tmux send-keys -t dashboard:0.0 "/usr/bin/printf %s \"\$(sed 's/^/   /' /etc/motd)\"; /usr/bin/tail -f /dev/null" C-m
+/usr/local/bin/tmux send-keys -t dashboard:0.1 "/usr/local/bin/tty-clock -sc -C 6 -f '%A, %B %d, %Y' -d 0 -a 100000000" C-m
+/usr/local/bin/tmux send-keys -t dashboard:0.2 "/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc tracking" C-m
+/usr/local/bin/tmux send-keys -t dashboard:0.3 "/sbin/statusbar" C-m
+/usr/local/bin/tmux send-keys -t dashboard:0.4 "/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc sources" C-m
+/usr/local/bin/tmux send-keys -t dashboard:0.5 "/usr/bin/env COLUMNS=80 LINES=28 /usr/local/bin/cgps" C-m
+
+# Make boarders suck less
+/usr/local/bin/tmux set-option -t dashboard pane-border-style "bg=black,fg=grey"
+/usr/local/bin/tmux set-option -t dashboard pane-active-border-style "bg=black,fg=grey"
+
+# Lockdown
+/usr/local/bin/tmux unbind-key -a
+/usr/local/bin/tmux set-option -t dashboard mouse off
+/usr/local/bin/tmux set-option -t dashboard status off
+
+# Attach
+/usr/local/bin/tmux -u -2 attach-session -t dashboard -r

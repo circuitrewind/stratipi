@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# ANSI codes
+RST="\033[0m"
+INV="\033[104;30m"
+TXT="\033[36m"
+CLR="\033[K"
+ALT="${INV}ALT${RST}"
+
+# Restore cursor on exit or Ctrl+C
+trap 'printf "\033[?25h"; exit' 0 1 2 15
+
+# Hide cursor
+printf "\033[?25l"
+
+
+while true; do
+	# Get the NIC IPv4 address
+	IP=$(ifconfig | awk '
+  		$1 ~ /^[a-z0-9]/ { iface=$1 }
+  		$1 == "inet" && $2 != "127.0.0.1" { print $2; exit }
+	')
+
+	# Print status line
+	printf	"   %b %b %b${CLR}\r" \
+		"${ALT}+${INV}F1${RST}-${ALT}+${INV}F7${RST} ${TXT}Terminal${RST}" \
+		"| ${ALT}+${INV}F8${RST} ${TXT}Status${RST}" \
+		"| IP ${TXT}$IP${RST}"
+
+	sleep 1
+done
