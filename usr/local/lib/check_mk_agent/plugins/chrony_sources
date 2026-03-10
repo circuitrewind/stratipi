@@ -23,9 +23,9 @@ def get_chrony_stats():
 		# Readable mapping
 		name = parts[0]
 		metrics = {
-			"offset":	parts[6],
+			"offset":	float(parts[6]) * 1000 * 1000,
 			"freq":		parts[4],
-			"stddev":	parts[7],
+			"stddev":	float(parts[7]) * 1000 * 1000,
 			"skew":		parts[5],
 			"np":		parts[1],
 			"span":		parts[3],
@@ -33,10 +33,10 @@ def get_chrony_stats():
 
 		# Construct performance data string (stats)
 		# Format: var=value;warn;crit;min;max (separated by pipes)
-		perf_data = "|".join([f"{k}={v};;;;" for k, v in metrics.items()])
+		perf_data = "|".join([f"{k}={v}" for k, v in metrics.items()])
 
 		# Summary text for the status column
-		summary = f"Offset: {metrics['offset']}s, Freq: {metrics['freq']}ppm"
+		summary = f"Offset: {metrics['offset']:.3f}μs, Freq: {metrics['freq']}ppm"
 
 		# Output: State "Service" Metrics Summary
 		print(f'0 "Chrony source {name}" {perf_data} {summary}')
