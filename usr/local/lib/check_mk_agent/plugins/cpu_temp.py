@@ -6,7 +6,6 @@ import sys
 import json
 import subprocess
 
-#sys.stdout.write("<<<local>>>\n")
 
 out		= subprocess.run(['/sbin/sysctl', '-n', 'dev.cpu.0.temperature'], capture_output=True, text=True)
 data	= float(out.stdout.replace('C', ''))
