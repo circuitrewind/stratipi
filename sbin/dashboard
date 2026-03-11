@@ -13,6 +13,11 @@
 /usr/local/bin/tmux resize-pane -t dashboard:0.2 -y 13
 /usr/local/bin/tmux resize-pane -t dashboard:0.3 -y 1
 /usr/local/bin/tmux resize-pane -t dashboard:0.4 -y 10
+
+# Explicit width for "tty-clock" otherwise date text might wrap
+/usr/local/bin/tmux resize-pane -t dashboard:0.1 -x 67
+
+# Explicit width for "cgps" - it requires 80 columns
 /usr/local/bin/tmux resize-pane -t dashboard:0.5 -x 80
 
 # Top-Left
