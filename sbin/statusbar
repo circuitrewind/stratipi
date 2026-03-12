@@ -16,10 +16,16 @@ printf "\033[?25l"
 
 while true; do
 	# Get the NIC IPv4 address
-	IP=$(ifconfig | awk '
-  		$1 ~ /^[a-z0-9]/ { iface=$1 }
-  		$1 == "inet" && $2 != "127.0.0.1" { print $2; exit }
+	IP=$(ifconfig -u | awk '
+		/^[a-z0-9]/ { ip = ""; active = 0 }
+		$1 == "inet" && $2 !~ /^127\./ { ip = $2 }
+		/status: (active|associated)/ { active = 1 }
+		ip && active { print ip; exit }
 	')
+
+	if [ -z "$IP" ]; then
+		IP="offline"
+	fi
 
 	# Print status line
 	printf	"   %b %b %b${CLR}\r" \
