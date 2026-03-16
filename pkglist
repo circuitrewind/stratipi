@@ -25,6 +25,7 @@ tmux
 bsdinfo
 htop
 ncdu2
+sdmon
 
 #Stratipi Specific NTP Awesomeness
 chrony
