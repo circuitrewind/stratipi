@@ -63,9 +63,9 @@ The dashboard also shows the output of `chrony tracking` and `chrony sources` as
 
 `cgps` on the lower-right: this displays the current health of the GPS signal, such as the number of visible satellites with their signal strength and relative location in the sky, as well as the number that are currently in use for triangulation.
 
-`chrony sources` on the top-right: this displays what `chrony` is using to determine the current time, as well as the accuracy of each source. When GPS is locked, the last "jitter" column should eventually fall to around 500-1500 nanoseconds.
+`chronyc sources` on the top-right: this displays what `chrony` is using to determine the current time, as well as the accuracy of each source. When GPS is locked, the last "jitter" column should eventually fall to around 500-1500 nanoseconds.
 
-`chrony tracking` on the bottom-left: this displays now well the time is being applied to the local system clock as well as how accurate the clock is over time. 
+`chronyc tracking` on the bottom-left: this displays now well the time is being applied to the local system clock as well as how accurate the clock is over time. 
 
 `tty-clock` on the middle-left: displays the current system time in UTC
 
