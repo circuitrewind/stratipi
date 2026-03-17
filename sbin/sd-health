@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Get the current "flags" value
+FLAGS=$(sysctl -n kern.geom.debugflags)
+
+# Reset the sysctl no matter what happens
+trap 'rc=$?; sysctl kern.geom.debugflags="$FLAGS" >/dev/null; exit $rc' INT TERM EXIT
+
+# Disable kernel security checks
+sysctl kern.geom.debugflags="16" >/dev/null
+
+# Get the current status of the SD/MMC card
+sdmon /dev/mmcsd0
+
+
