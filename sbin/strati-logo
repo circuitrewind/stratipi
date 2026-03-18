@@ -1,0 +1,3 @@
+#!/bin/sh
+/usr/bin/printf "%s" "$(sed 's/^/   /' /etc/motd)"
+/usr/bin/tail -f /dev/null

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+DELAY=1
+
+if [ $# -eq 0 ]; then
+	echo "Usage: $0 <command> [args...]"
+	exit 1
+fi
+
+while true; do
+	echo "--- Starting: $@ ---"
+	"$@"
+
+	EXIT_CODE=$?
+	echo "--- Process exited with code $EXIT_CODE. Restarting in ${DELAY}s... ---"
+
+	sleep "$DELAY"
+done

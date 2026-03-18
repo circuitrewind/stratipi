@@ -1,68 +1,69 @@
 #!/bin/sh
 
+TMUX=/usr/local/bin/tmux
+SPLIT="$TMUX split-window"
+RESIZE="$TMUX resize-pane"
+SELECT="$TMUX select-pane"
+OPTION="$TMUX set-option"
+
 # Create a new tmux session with our current width/height
-/usr/local/bin/tmux new-session -d -s dashboard -x 148 -y 39
+$TMUX new-session -d -s dashboard -x 148 -y 39
 
 # Split the session into multiple panes
-/usr/local/bin/tmux split-window -h -t dashboard
-/usr/local/bin/tmux split-window -v -t dashboard:0.0
-/usr/local/bin/tmux split-window -v -t dashboard:0.1
-/usr/local/bin/tmux split-window -v -t dashboard:0.2
-/usr/local/bin/tmux split-window -v -t dashboard:0.4
-/usr/local/bin/tmux resize-pane -t dashboard:0.0 -y 8
-/usr/local/bin/tmux resize-pane -t dashboard:0.2 -y 13
-/usr/local/bin/tmux resize-pane -t dashboard:0.3 -y 1
-/usr/local/bin/tmux resize-pane -t dashboard:0.4 -y 10
+$SPLIT -h -t dashboard
+$SPLIT -v -t dashboard:0.0
+$SPLIT -v -t dashboard:0.1
+$SPLIT -v -t dashboard:0.2
+$SPLIT -v -t dashboard:0.4
+$RESIZE -t dashboard:0.0 -y 8
+$RESIZE -t dashboard:0.2 -y 13
+$RESIZE -t dashboard:0.3 -y 1
+$RESIZE -t dashboard:0.4 -y 10
 
 # Explicit width for "tty-clock" otherwise date text might wrap
-/usr/local/bin/tmux resize-pane -t dashboard:0.1 -x 67
+$RESIZE -t dashboard:0.1 -x 67
 
 # Explicit width for "cgps" - it requires 80 columns
-/usr/local/bin/tmux resize-pane -t dashboard:0.5 -x 80
+$RESIZE -t dashboard:0.5 -x 80
 
-# Top-Left
-/usr/local/bin/tmux select-pane -t dashboard:0.0
-/usr/local/bin/tmux select-pane -P 'bg=black,fg=blue'
 
-# Mid-Top-Left
-/usr/local/bin/tmux select-pane -t dashboard:0.1
-/usr/local/bin/tmux select-pane -P 'bg=black,fg=white'
+# Quick helper function for setting BG/FG colors
+colors() {
+	$SELECT -t "dashboard:$1" -P "bg=$2,fg=$3"
+}
 
-# Mid-Bottom-Left
-/usr/local/bin/tmux select-pane -t dashboard:0.2
-/usr/local/bin/tmux select-pane -P 'bg=black,fg=white'
+colors "0.0" "black" "blue"         # Top-Left
+colors "0.1" "black" "white"        # Mid-Top-Left
+colors "0.2" "black" "white"        # Mid-Bottom-Left
+colors "0.3" "black" "white"        # Bottom-Left
+colors "0.4" "black" "white"        # Top-Right
+colors "0.5" "black" "white"        # Bottom-Right
 
-# Bottom-Left
-/usr/local/bin/tmux select-pane -t dashboard:0.3
-/usr/local/bin/tmux select-pane -P 'bg=black,fg=white'
-
-# Top-Right
-/usr/local/bin/tmux select-pane -t dashboard:0.4
-/usr/local/bin/tmux select-pane -P 'bg=black,fg=white'
-
-# Bottom-Right
-/usr/local/bin/tmux select-pane -t dashboard:0.5
-/usr/local/bin/tmux select-pane -P 'bg=black,fg=white'
-
-# Make boarders suck less
-/usr/local/bin/tmux set-option -t dashboard pane-border-style "bg=black,fg=grey"
-/usr/local/bin/tmux set-option -t dashboard pane-active-border-style "bg=black,fg=grey"
+# Make borders suck less
+$OPTION -t dashboard pane-border-style "bg=black,fg=grey"
+$OPTION -t dashboard pane-active-border-style "bg=black,fg=grey"
 
 # Lockdown
-/usr/local/bin/tmux unbind-key -a
-/usr/local/bin/tmux set-option -t dashboard mouse off
-/usr/local/bin/tmux set-option -t dashboard status off
+$TMUX unbind-key -a
+$OPTION -t dashboard mouse off
+$OPTION -t dashboard status off
 
 # Slight delay to ensure all TTY settings sync before launching apps
 sleep 0.1
 
+# Quick helper function to launch commands in each tmux pane
+guard() {
+	$TMUX send-keys -t "dashboard:$1" "/sbin/dash-guard $2" C-m
+}
+
 # Launch all the things!!!
-/usr/local/bin/tmux send-keys -t dashboard:0.0 "/usr/bin/printf %s \"\$(sed 's/^/   /' /etc/motd)\"; /usr/bin/tail -f /dev/null" C-m
-/usr/local/bin/tmux send-keys -t dashboard:0.1 "/usr/local/bin/tty-clock -sc -C 6 -f '%A, %B %d, %Y' -d 0 -a 100000000" C-m
-/usr/local/bin/tmux send-keys -t dashboard:0.2 "/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc tracking" C-m
-/usr/local/bin/tmux send-keys -t dashboard:0.3 "/sbin/statusbar" C-m
-/usr/local/bin/tmux send-keys -t dashboard:0.4 "/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc sources" C-m
-/usr/local/bin/tmux send-keys -t dashboard:0.5 "/usr/bin/env COLUMNS=80 LINES=28 /usr/local/bin/cgps" C-m
+guard "0.0" "/sbin/strati-logo"
+guard "0.1" "/usr/local/bin/tty-clock -sc -C 6 -f '%A, %B %d, %Y' -d 0 -a 25000000"
+guard "0.2" "/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc tracking"
+guard "0.3" "/sbin/statusbar"
+guard "0.4" "/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc sources"
+guard "0.5" "/usr/bin/env COLUMNS=80 LINES=28 /usr/local/bin/cgps"
+
 
 # Attach
-/usr/local/bin/tmux -u -2 attach-session -t dashboard -r
+$TMUX -u -2 attach-session -t dashboard -r
