@@ -4,6 +4,7 @@
 RST="\033[0m"
 INV="\033[104;30m"
 TXT="\033[36m"
+ERR="\033[31m"
 CLR="\033[K"
 ALT="${INV}ALT${RST}"
 
@@ -24,7 +25,7 @@ while true; do
 	')
 
 	if [ -z "$IP" ]; then
-		IP="offline"
+		IP="${ERR}offline"
 	fi
 
 	# Print status line
