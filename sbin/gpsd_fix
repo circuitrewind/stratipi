@@ -1,0 +1,14 @@
+#!/bin/sh
+
+BIN=/usr/bin
+SERVICE=/usr/sbin/service
+
+if ! $SERVICE gpsd status >/dev/null 2>&1; then
+	echo 'gpsd not running, restarting gpsd...'
+	$SERVICE gpsd restart
+
+elif $BIN/sockstat -u | $BIN/grep -q "gpsd.*not connected"; then
+	echo 'gpsd not connected to chronyd, restarting gpsd...'
+	$SERVICE gpsd restart
+fi
+
