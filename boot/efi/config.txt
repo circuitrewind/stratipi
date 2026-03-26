@@ -25,6 +25,7 @@ dtoverlay=pps-gpio,gpiopin=4
 
 [pi3]
 core_freq=250
+dtoverlay=disable-bt
 
 
 [pi4]
