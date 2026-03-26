@@ -7,8 +7,13 @@ if ! $SERVICE gpsd status >/dev/null 2>&1; then
 	echo 'gpsd not running, restarting gpsd...'
 	$SERVICE gpsd restart
 
-elif $BIN/sockstat -u | $BIN/grep -q "gpsd.*not connected"; then
-	echo 'gpsd not connected to chronyd, restarting gpsd...'
+elif $BIN/sockstat -uw | $BIN/awk '$2=="gpsd" && $0 ~ /not connected/' | $BIN/grep -q .; then
+	echo 'gpsd orphaned from chronyd, restarting gpsd...'
 	$SERVICE gpsd restart
+
+elif ! $BIN/sockstat -uw | $BIN/awk '$2=="gpsd" && $NF ~ /chrony.*\.sock/' | $BIN/grep -q .; then
+	echo 'gpsd not connected to chrony, restarting gpsd...'
+	$SERVICE gpsd restart
+
 fi
 
