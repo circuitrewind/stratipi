@@ -33,12 +33,14 @@ def gpscmd(port, baud, command):
 # FORCE CHANGE FROM 9,600 TO 115,200 BAUD
 if os.path.exists('/dev/cuau0'):
 	gpscmd('cuau0', 9600, baud_115200)
-	gpscmd('cuau0', 115200, rmc_gga)
+	time.sleep(0.75)
+	gpscmd('cuau0', 115200, rmc_all)
 	gpscmd('cuau0', 115200, stationary)
 
 
 # FORCE CHANGE FROM 9,600 TO 115,200 BAUD
 if os.path.exists('/dev/cuau1'):
 	gpscmd('cuau1', 9600, baud_115200)
-	gpscmd('cuau1', 115200, rmc_gga)
+	time.sleep(0.75)
+	gpscmd('cuau1', 115200, rmc_all)
 	gpscmd('cuau1', 115200, stationary)
