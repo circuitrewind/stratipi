@@ -5,7 +5,8 @@ vendor=stratipi
 # Boot Logic
 boot_targets=mmc usb
 bootcmd=bootflow scan
-preboot=pci enum; usb start;
+bootargs="console=tty1"
+preboot="pci enum; usb start; env set -e -nv ConIn usbkbd; env set -e -nv ConOut vidconsole"
 
 # FreeBSD Handover
 fdt_addr=4000

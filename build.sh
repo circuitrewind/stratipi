@@ -99,7 +99,7 @@ POOL=$(basename $ROOT)
 
 # THINGS WE'LL NEED LATER ON IN THE SCRIPT
 println "Installing local build dependencies"
-pkg install -y rpi-firmware
+pkg install -y rpi-firmware u-boot-tools
 
 
 # REMOVE THE OLD IMAGE FILE IF IT STILL EXISTS
@@ -226,6 +226,13 @@ pkg -r $ROOT query '%n-%v' > $SCRIPT_DIR/pkg-manifest.txt
 println "Fixing file and folder permissions"
 $SCRIPT_DIR/uid.sh $METALOG $ROOT
 rm $METALOG
+
+
+# BUILDING UBOOT ENV FILE
+println "Building uboot file"
+set -x
+mkenvimage -s 16384 -o $SCRIPT_DIR/boot/efi/uboot.env $SCRIPT_DIR/boot/efi/uboot.txt
+{ set +x; } 2>/dev/null
 
 
 # INSTALL THE OVERLAY FILESYSTEM
