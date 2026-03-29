@@ -62,7 +62,7 @@ guard "0.1" "/usr/local/bin/tty-clock -sc -C 6 -f '%A, %B %d, %Y' -d 0 -a 250000
 guard "0.2" "/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc tracking"
 guard "0.3" "/sbin/statusbar"
 guard "0.4" "/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc sources"
-guard "0.5" "/usr/bin/env COLUMNS=80 LINES=28 /usr/local/bin/cgps"
+guard "0.5" "/usr/bin/env COLUMNS=80 LINES=28 /usr/local/bin/cgps -s"
 
 
 # Attach
