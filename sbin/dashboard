@@ -5,65 +5,73 @@ SPLIT="$TMUX split-window"
 RESIZE="$TMUX resize-pane"
 SELECT="$TMUX select-pane"
 OPTION="$TMUX set-option"
+SESSION="dashboard-$$"
 
 # Create a new tmux session with our current width/height
-$TMUX new-session -d -s dashboard -x 148 -y 39
+ROOT=$($TMUX new-session -d -s $SESSION -x 148 -y 39 -P -F "#{pane_id}")
 
 # Split the session into multiple panes
-$SPLIT -h -t dashboard
-$SPLIT -v -t dashboard:0.0
-$SPLIT -v -t dashboard:0.1
-$SPLIT -v -t dashboard:0.2
-$SPLIT -v -t dashboard:0.4
-$RESIZE -t dashboard:0.0 -y 8
-$RESIZE -t dashboard:0.2 -y 13
-$RESIZE -t dashboard:0.3 -y 1
-$RESIZE -t dashboard:0.4 -y 9
+STATUS=$($TMUX split-window -v -t $ROOT -P -F "#{pane_id}")
+RIGHT=$($TMUX split-window -h -t $ROOT -P -F "#{pane_id}")
+LEFT=$ROOT
+L2=$($TMUX split-window -v -t $LEFT -P -F "#{pane_id}")
+L3=$($TMUX split-window -v -t $L2 -P -F "#{pane_id}")
+R2=$($TMUX split-window -v -t $RIGHT -P -F "#{pane_id}")
 
-# Explicit width for "tty-clock" otherwise date text might wrap
-$RESIZE -t dashboard:0.1 -x 67
+# Set the status bar height
+$TMUX resize-pane -t $STATUS -y 1
 
-# Explicit width for "cgps" - it requires 80 columns
-$RESIZE -t dashboard:0.5 -x 80
+# Set the width of the two columns
+$TMUX resize-pane -t $LEFT  -x 67
+$TMUX resize-pane -t $RIGHT -x 80
+
+# Resize the logo and chronyc tracking panes
+$TMUX resize-pane -t $LEFT -y 8
+$TMUX resize-pane -t $L3   -y 13
+
+# Resize the chronyc sources pane
+$TMUX resize-pane -t $RIGHT -y 9
 
 
 # Quick helper function for setting BG/FG colors
 colors() {
-	$SELECT -t "dashboard:$1" -P "bg=$2,fg=$3"
+	$SELECT -t "$1" -P "bg=$2,fg=$3"
 }
 
-colors "0.0" "black" "blue"         # Top-Left
-colors "0.1" "black" "white"        # Mid-Top-Left
-colors "0.2" "black" "white"        # Mid-Bottom-Left
-colors "0.3" "black" "white"        # Bottom-Left
-colors "0.4" "black" "white"        # Top-Right
-colors "0.5" "black" "white"        # Bottom-Right
+colors $LEFT	black blue
+colors $L2		black white
+colors $L3		black white
+colors $RIGHT	black white
+colors $R2		black white
+colors $STATUS	black white
 
 # Make borders suck less
-$OPTION -t dashboard pane-border-style "bg=black,fg=grey"
-$OPTION -t dashboard pane-active-border-style "bg=black,fg=grey"
+$OPTION -t $SESSION pane-border-style "bg=black,fg=grey"
+$OPTION -t $SESSION pane-active-border-style "bg=black,fg=grey"
 
-# Lockdown
-$TMUX unbind-key -a
-$OPTION -t dashboard mouse off
-$OPTION -t dashboard status off
+# Lockdown, no user input
+#$TMUX unbind-key -a -t $SESSION
+$OPTION -t $SESSION key-table off
+$OPTION -t $SESSION mouse off
+$OPTION -t $SESSION status off
 
 # Slight delay to ensure all TTY settings sync before launching apps
-sleep 0.1
+BARRIER=$($TMUX split-window -v -t "$ROOT" -P -F "#{pane_id}" "true")
+$TMUX kill-pane -t "$BARRIER"
 
 # Quick helper function to launch commands in each tmux pane
 guard() {
-	$TMUX send-keys -t "dashboard:$1" "/sbin/dash-guard $2" C-m
+	$TMUX respawn-pane -t "$1" -k "/sbin/dash-guard $2"
 }
 
 # Launch all the things!!!
-guard "0.0" "/sbin/strati-logo"
-guard "0.1" "/usr/local/bin/tty-clock -sc -C 6 -f '%A, %B %d, %Y' -d 0 -a 25000000"
-guard "0.2" "/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc tracking"
-guard "0.3" "/sbin/statusbar"
-guard "0.4" "/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc sources"
-guard "0.5" "/usr/bin/env COLUMNS=80 LINES=28 /usr/local/bin/cgps -s"
+guard $LEFT		"/sbin/strati-logo"
+guard $L2		"/usr/local/bin/tty-clock -sc -C 6 -f '%A, %B %d, %Y' -d 0 -a 25000000"
+guard $L3		"/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc tracking"
+guard $RIGHT	"/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc sources"
+guard $R2		"/usr/bin/env COLUMNS=80 LINES=28 /usr/local/bin/cgps -s"
+guard $STATUS	"/sbin/statusbar"
 
 
 # Attach
-$TMUX -u -2 attach-session -t dashboard -r
+$TMUX -u -2 attach-session -t $SESSION -r
