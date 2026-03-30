@@ -69,7 +69,7 @@ guard $LEFT		"/sbin/strati-logo"
 guard $L2		"/usr/local/bin/tty-clock -sc -C 6 -f '%A, %B %d, %Y' -d 0 -a 25000000"
 guard $L3		"/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc tracking"
 guard $RIGHT	"/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc sources"
-guard $R2		"/usr/bin/env COLUMNS=80 LINES=28 /usr/local/bin/cgps -s"
+guard $R2		"/usr/local/bin/cgps -s"
 guard $STATUS	"/sbin/statusbar"
 
 
