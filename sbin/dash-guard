@@ -8,7 +8,6 @@ if [ $# -eq 0 ]; then
 fi
 
 while true; do
-	echo "--- Starting: $@ ---"
 	"$@"
 
 	EXIT_CODE=$?
