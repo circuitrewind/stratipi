@@ -1,0 +1,19 @@
+#!/bin/sh
+
+while true; do
+	printf "\033[H"
+
+	chronyc sourcestats | awk '
+		NR==1	{ h1=$0; match($0, /NP/); start=RSTART }
+		NR>2	{ s[$1]=substr($0, start) }
+		END {
+			while (("chronyc sources" | getline) > 0) {
+				row++;
+				if (row==1) printf "\n      %-81s%s", $0, substr(h1, start);
+				else if ($0 ~ /^[#^]/) printf "\n      %-81s%s", $0, s[$2]
+			}
+		}
+	'
+
+	sleep 1
+done

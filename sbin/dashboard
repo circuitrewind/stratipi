@@ -9,28 +9,40 @@ SESSION="dashboard-$$"
 
 # Create a new tmux session with our current width/height
 ROOT=$($TMUX new-session -d -s $SESSION -x 148 -y 39 -P -F "#{pane_id}")
+TOP=$ROOT
 
-# Split the session into multiple panes
-STATUS=$($TMUX split-window -v -t $ROOT -P -F "#{pane_id}")
-RIGHT=$($TMUX split-window -h -t $ROOT -P -F "#{pane_id}")
-LEFT=$ROOT
-L2=$($TMUX split-window -v -t $LEFT -P -F "#{pane_id}")
-L3=$($TMUX split-window -v -t $L2 -P -F "#{pane_id}")
-R2=$($TMUX split-window -v -t $RIGHT -P -F "#{pane_id}")
+# Split out bottom pane first to ensure heights work
+BOTTOM1=$($TMUX split-window -v -t $ROOT -P -F "#{pane_id}")
+$TMUX resize-pane -t $BOTTOM1 -y 10
 
-# Set the status bar height
-$TMUX resize-pane -t $STATUS -y 1
+# Split out the rest of the panes
+BOTTOM2=$($TMUX split-window -v -t $BOTTOM1 -P -F "#{pane_id}")
+RIGHT1=$($TMUX split-window -h -t $ROOT -P -F "#{pane_id}")
+RIGHT2=$($TMUX split-window -v -t $RIGHT1 -P -F "#{pane_id}")
+LEFT1=$ROOT
+LEFT2=$($TMUX split-window -v -t $LEFT1 -P -F "#{pane_id}")
+
 
 # Set the width of the two columns
-$TMUX resize-pane -t $LEFT  -x 67
-$TMUX resize-pane -t $RIGHT -x 80
+$TMUX resize-pane -t $LEFT1  -x 67
+$TMUX resize-pane -t $RIGHT1 -x 80
 
-# Resize the logo and chronyc tracking panes
-$TMUX resize-pane -t $LEFT -y 8
-$TMUX resize-pane -t $L3   -y 13
+# Set "chrony tracking" height
+$TMUX resize-pane -t $RIGHT1 -y 15
 
-# Resize the chronyc sources pane
-$TMUX resize-pane -t $RIGHT -y 9
+# Set "cgps" height
+$TMUX resize-pane -t $RIGHT2 -y 12
+
+# Set the logo height
+$TMUX resize-pane -t $LEFT1 -y 8
+
+# Set "chrony sources / sourcestats" height
+$TMUX resize-pane -t $BOTTOM1 -y 8
+
+# Set the status bar height
+$TMUX resize-pane -t $BOTTOM2 -y 1
+
+
 
 
 # Quick helper function for setting BG/FG colors
@@ -38,12 +50,12 @@ colors() {
 	$SELECT -t "$1" -P "bg=$2,fg=$3"
 }
 
-colors $LEFT	black blue
-colors $L2		black white
-colors $L3		black white
-colors $RIGHT	black white
-colors $R2		black white
-colors $STATUS	black white
+colors $LEFT1	black blue
+colors $LEFT2	black white
+colors $RIGHT1	black white
+colors $RIGHT2	black white
+colors $BOTTOM1	black white
+colors $BOTTOM2	black white
 
 # Make borders suck less
 $OPTION -t $SESSION pane-border-style "bg=black,fg=grey"
@@ -65,12 +77,13 @@ guard() {
 }
 
 # Launch all the things!!!
-guard $LEFT		"/sbin/strati-logo"
-guard $L2		"/usr/local/bin/tty-clock -sc -C 6 -f '%A, %B %d, %Y' -d 0 -a 25000000"
-guard $L3		"/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc tracking"
-guard $RIGHT	"/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc sources"
-guard $R2		"/usr/local/bin/cgps -s"
-guard $STATUS	"/sbin/statusbar"
+guard $LEFT1	"/sbin/strati-logo"
+guard $LEFT2	"/usr/local/bin/tty-clock -sc -C 6 -f '%A, %B %d, %Y' -d 0 -a 25000000"
+#guard $RIGHT	"/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc sources"
+guard $RIGHT1	"/usr/local/bin/cgps -s"
+guard $RIGHT2	"/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc tracking"
+guard $BOTTOM1	"/sbin/dash-chrony"
+guard $BOTTOM2	"/sbin/statusbar"
 
 
 # Attach
