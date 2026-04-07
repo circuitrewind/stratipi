@@ -73,7 +73,7 @@ $TMUX kill-pane -t "$BARRIER"
 
 # Quick helper function to launch commands in each tmux pane
 guard() {
-	$TMUX respawn-pane -t "$1" -k "/sbin/dash-guard $2"
+	$TMUX respawn-pane -t "$1" -k "exec /sbin/dash-guard $2"
 }
 
 # Launch all the things!!!
