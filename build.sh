@@ -148,6 +148,7 @@ zpool create -f \
   -O recordsize=16M \
   -O compression=$COMPRESS \
   -O sync=disabled \
+  -O checksum=sha256 \
   -t $POOL \
   -R $ZROOT \
   $ZPOOL "${DEVICE}${SLICE}2"
