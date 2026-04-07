@@ -15,5 +15,6 @@ while true; do
 		}
 	'
 
+	printf "\033[J"
 	sleep 1
 done

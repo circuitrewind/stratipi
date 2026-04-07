@@ -19,6 +19,7 @@ $TMUX resize-pane -t $BOTTOM1 -y 10
 BOTTOM2=$($TMUX split-window -v -t $BOTTOM1 -P -F "#{pane_id}")
 RIGHT1=$($TMUX split-window -h -t $ROOT -P -F "#{pane_id}")
 RIGHT2=$($TMUX split-window -v -t $RIGHT1 -P -F "#{pane_id}")
+RIGHT3=$($TMUX split-window -h -t $RIGHT2 -P -F "#{pane_id}")
 LEFT1=$ROOT
 LEFT2=$($TMUX split-window -v -t $LEFT1 -P -F "#{pane_id}")
 
@@ -27,11 +28,8 @@ LEFT2=$($TMUX split-window -v -t $LEFT1 -P -F "#{pane_id}")
 $TMUX resize-pane -t $LEFT1  -x 67
 $TMUX resize-pane -t $RIGHT1 -x 80
 
-# Set "chrony tracking" height
-$TMUX resize-pane -t $RIGHT1 -y 15
-
-# Set "cgps" height
-$TMUX resize-pane -t $RIGHT2 -y 12
+# Set "chrony" sizes
+$TMUX resize-pane -t $RIGHT2 -x 40 -y 13
 
 # Set the logo height
 $TMUX resize-pane -t $LEFT1 -y 8
@@ -79,9 +77,9 @@ guard() {
 # Launch all the things!!!
 guard $LEFT1	"/sbin/strati-logo"
 guard $LEFT2	"/usr/local/bin/tty-clock -sc -C 6 -f '%A, %B %d, %Y' -d 0 -a 25000000"
-#guard $RIGHT	"/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc sources"
 guard $RIGHT1	"/usr/local/bin/cgps -s"
-guard $RIGHT2	"/usr/local/bin/gnu-watch -n1 -t /usr/local/bin/chronyc tracking"
+guard $RIGHT2	"/sbin/dash-tracking"
+guard $RIGHT3	"/sbin/dash-clients"
 guard $BOTTOM1	"/sbin/dash-chrony"
 guard $BOTTOM2	"/sbin/statusbar"
 

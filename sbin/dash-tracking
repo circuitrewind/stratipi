@@ -1,0 +1,10 @@
+#!/bin/sh
+
+while true; do
+	printf "\033[H"
+	printf "%s" "$(chronyc tracking | cut -c1-38)"
+	sleep 1
+done
+
+
+

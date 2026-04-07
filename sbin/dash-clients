@@ -1,0 +1,24 @@
+#!/bin/sh
+
+CEOL=$(printf '\033[K')
+
+while true; do
+    printf "\033[H"
+
+	(
+	echo "Host NTP Last"; chronyc clients | awk 'NR>2 && $1 !~ /^=/ {
+		val=$6; unit=substr(val,length(val));
+		if(unit=="y") mult=31536000;
+		else if(unit=="d") mult=86400;
+		else if(unit=="h") mult=3600;
+		else if(unit=="m") mult=60;
+		else {mult=1; unit=""}
+		num=val; sub(/[y|d|h|m|s]$/,"",num);
+		if (val == "-") num=9999999999;
+		print $1, $2, $6, num*mult
+	}' | sort -h -k4,4n | head -n 5 | awk -v cl="$CEOL" '{print $1, $2, $3 cl}'
+	) | column -t
+
+	printf "\033[J"
+	sleep 1
+done
