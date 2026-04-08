@@ -32,7 +32,11 @@ while true; do
 
 	LOAD=$(sysctl -n vm.loadavg | tr -d '{}' | xargs)
 	TEMP=$(sysctl -n dev.cpu.0.temperature)
-	CLIENTS=$(chronyc -cn clients | grep -vE '^(127\.0\.0\.1|::1)' | grep -c '')
+
+	ZPOOL=$(
+		zpool list | tail -n 1 |
+		awk -v t="$TXT" -v r="$RST" '{print t $3 r "/" t $2 r}'
+	)
 
 	# Print status line
 	printf "\t%b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b${CLR}\r" \
@@ -40,7 +44,7 @@ while true; do
 		"${TTL}Status${RST} ${ALT}+${INV}F8${RST}" \
 		"${TTL}Load${RST} ${TXT}$LOAD${RST}" \
 		"${TTL}Temp${RST} ${TXT}$TEMP${RST}" \
-		"${TTL}Clients${RST} ${TXT}$CLIENTS${RST}" \
+		"${TTL}ZFS${RST} $ZPOOL" \
 		"${TTL}IP${RST} ${TXT}$IP${RST}"
 
 	sleep 1
