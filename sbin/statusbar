@@ -35,7 +35,7 @@ while true; do
 	CLIENTS=$(chronyc -cn clients | grep -vE '^(127\.0\.0\.1|::1)' | grep -c '')
 
 	# Print status line
-	printf "   %b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b${CLR}\r" \
+	printf "\t%b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b${CLR}\r" \
 		"${TTL}Terminal${RST} ${ALT}+${INV}F1${RST} - ${ALT}+${INV}F7${RST}" \
 		"${TTL}Status${RST} ${ALT}+${INV}F8${RST}" \
 		"${TTL}Load${RST} ${TXT}$LOAD${RST}" \
