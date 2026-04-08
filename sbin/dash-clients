@@ -16,7 +16,7 @@ while true; do
 		num=val; sub(/[y|d|h|m|s]$/,"",num);
 		if (val == "-") num=9999999999;
 		print $1, $2, $6, num*mult
-	}' | sort -h -k4,4n | head -n 5 | awk -v cl="$CEOL" '{print $1, $2, $3 cl}'
+	}' | sort -h -k4,4n | head -n 12 | awk -v cl="$CEOL" '{print $1, $2, $3 cl}'
 	) | column -t
 
 	printf "\033[J"
