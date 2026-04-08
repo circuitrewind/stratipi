@@ -3,10 +3,12 @@
 CEOL=$(printf '\033[K')
 
 while true; do
-    printf "\033[H"
+	printf "\033[H"
+
+	CLIENTS=$(chronyc -cn clients | grep -vE '^(127\.0\.0\.1|::1)' | grep -c '')
 
 	(
-	echo "Host NTP Last"
+	echo "Clients: $CLIENTS,Pkts,Last"
 	chronyc clients | awk 'NR>2 && $1 !~ /^=/ {
 		val=$6; num=val; sub(/[y|d|h|m|s]$/,"",num);
 		unit=substr(val,length(val));
@@ -19,8 +21,8 @@ while true; do
 		else { s=num }
 		print $1, $2, $6, s
 
-	}' | sort -h -k4,4n | head -n 12 | awk '{print $1, $2, $3}'
-	) | column -t | sed "s/$/$CEOL/" | printf "%s" "$(cat)"
+	}' | sort -h -k4,4n | head -n 12 | awk '{print $1 "," $2 "," $3}'
+	) | column -s, -t | sed "s/$/$CEOL/" | printf "%s" "$(cat)"
 
 	printf "\033[J"
 	sleep 1
