@@ -20,7 +20,7 @@ while true; do
 		print $1, $2, $6, s
 
 	}' | sort -h -k4,4n | head -n 12 | awk '{print $1, $2, $3}'
-	) | column -t | sed "s/$/$CEOL/"
+	) | column -t | sed "s/$/$CEOL/" | printf "%s" "$(cat)"
 
 	printf "\033[J"
 	sleep 1
