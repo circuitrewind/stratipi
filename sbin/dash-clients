@@ -6,18 +6,21 @@ while true; do
     printf "\033[H"
 
 	(
-	echo "Host NTP Last"; chronyc clients | awk 'NR>2 && $1 !~ /^=/ {
-		val=$6; unit=substr(val,length(val));
-		if(unit=="y") mult=31536000;
-		else if(unit=="d") mult=86400;
-		else if(unit=="h") mult=3600;
-		else if(unit=="m") mult=60;
-		else {mult=1; unit=""}
-		num=val; sub(/[y|d|h|m|s]$/,"",num);
-		if (val == "-") num=9999999999;
-		print $1, $2, $6, num*mult
-	}' | sort -h -k4,4n | head -n 12 | awk -v cl="$CEOL" '{print $1, $2, $3 cl}'
-	) | column -t
+	echo "Host NTP Last"
+	chronyc clients | awk 'NR>2 && $1 !~ /^=/ {
+		val=$6; num=val; sub(/[y|d|h|m|s]$/,"",num);
+		unit=substr(val,length(val));
+
+		if (val == "-") { s=999999999 }
+		else if (unit == "y") { s=num*31536000 }
+		else if (unit == "d") { s=num*86400 }
+		else if (unit == "h") { s=num*3600 }
+		else if (unit == "m") { s=num*60 }
+		else { s=num }
+		print $1, $2, $6, s
+
+	}' | sort -h -k4,4n | head -n 12 | awk '{print $1, $2, $3}'
+	) | column -t | sed "s/$/$CEOL/"
 
 	printf "\033[J"
 	sleep 1
