@@ -11,8 +11,12 @@ elif $BIN/sockstat -uw | $BIN/awk '$2=="gpsd" && $0 ~ /not connected/' | $BIN/gr
 	echo 'gpsd orphaned from chronyd, restarting gpsd...'
 	$SERVICE gpsd restart
 
-elif ! $BIN/sockstat -uw | $BIN/awk '$2=="gpsd" && $NF ~ /chrony.*\.sock/' | $BIN/grep -q .; then
-	echo 'gpsd not connected to chrony, restarting gpsd...'
+elif [ -e /dev/cuau0 ] && ! $BIN/sockstat -uw | $BIN/awk '$2=="gpsd" && $NF ~ /chrony.*cuau0[.]sock/' | $BIN/grep -q .; then
+	echo 'gpsd on cuau0 not connected to chrony, restarting gpsd...'
+	$SERVICE gpsd restart
+
+elif [ -e /dev/cuau1 ] && ! $BIN/sockstat -uw | $BIN/awk '$2=="gpsd" && $NF ~ /chrony.*cuau1[.]sock/' | $BIN/grep -q .; then
+	echo 'gpsd on cuau1 not connected to chrony, restarting gpsd...'
 	$SERVICE gpsd restart
 
 fi
