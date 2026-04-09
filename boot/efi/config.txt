@@ -1,7 +1,6 @@
 [all]
 arm_64bit=1
-dtparam=audio=off,i2c_arm=on,spi=on
-dtoverlay=pwm
+dtparam=audio=off,i2c_arm=of,spi=off
 dtoverlay=disable-wifi
 
 kernel=u-boot.bin
@@ -18,6 +17,11 @@ force_turbo=1
 # We don't need graphics on this :P
 gpu_mem=16mb
 
+# HDMI Resolution 1280x720
+hdmi_force_hotplug=1
+hdmi_group=1
+hdmi_mode=4
+
 
 # Overlays for GPS UART and PPS
 dtoverlay=pps-gpio,gpiopin=4
@@ -32,8 +36,3 @@ armstub=armstub8-gic.bin
 
 # Only support U1 and faster Micro SD cards
 dtparam=sd_overclock=100
-
-# HDMI Resolution 1280x720
-hdmi_force_hotplug=1
-hdmi_group=1
-hdmi_mode=4
