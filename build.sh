@@ -140,7 +140,7 @@ gpart show $DEVICE
 # BIG O: ZFS DATASET PROPERTIES
 println "Creating zpool: $ZPOOL ($POOL) on ${DEVICE}${SLICE}2"
 ZROOT=$(dirname $ROOT)
-set -x
+(set -x
 zpool create -f \
   -o ashift=12 \
   -o autotrim=off \
@@ -154,8 +154,8 @@ zpool create -f \
   $ZPOOL "${DEVICE}${SLICE}2"
 
 zpool set bootfs=$POOL $POOL
-
-{ set +x; } 2>/dev/null
+)
+echo ''
 zpool list $POOL
 
 
@@ -231,9 +231,9 @@ rm $METALOG
 
 # BUILDING UBOOT ENV FILE
 println "Building uboot file"
-set -x
+(set -x
 mkenvimage -s 16384 -o $SCRIPT_DIR/boot/efi/uboot.env $SCRIPT_DIR/boot/efi/uboot.txt
-{ set +x; } 2>/dev/null
+)
 
 
 # INSTALL THE OVERLAY FILESYSTEM
@@ -267,13 +267,13 @@ rm $ROOT/var/cache/pkg
 
 # SET ZFS PROPERTIES TO SOMETHING SANE FOR NORMAL USAGE
 println "Setting 'sane' zpool options for daily usage"
-set -x
+(set -x
 zfs set \
   compression=on \
   recordsize=128k \
   sync=standard \
   $POOL
-{ set +x; } 2>/dev/null
+)
 
 
 # CLEANUP ALL THE TEMPORARY STUFF WE DID
