@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+
+import subprocess
+
+
+now = __import__("time").time()
+
+
+################################################################################
+# Convert length string to raw seconds. ex: "1h" to 3600
+################################################################################
+def seconds(s: str) -> int:
+    total = 0
+    try:
+        for token in s.split(","):
+            if not token:
+                continue
+            if token.endswith("y"):
+                total += int(token[:-1]) * 31_536_000
+            elif token.endswith("d"):
+                total += int(token[:-1]) *     86_400
+            elif token.endswith("h"):
+                total += int(token[:-1]) *      3_600
+            elif token.endswith("m"):
+                total += int(token[:-1]) *         60
+            elif token.endswith("s"):
+                total += int(token[:-1])
+            else:
+                total += int(token)
+    except Exception as e:
+        pass
+    return total
+
+
+
+
+################################################################################
+# Sub-process execution stuff. Get "chronyc clients" raw text and parse it
+################################################################################
+def chronyc_clients() -> list[tuple[str, int]] | None:
+    try:
+        result = subprocess.run(
+            ["chronyc", "clients"],
+            capture_output=True, text=True, timeout=10, check=True
+        )
+    except Exception as e:
+        return None
+
+    clients = []
+
+    for line in result.stdout.splitlines():
+        line = line.strip()
+        if (not line) or ("===" in line) or ("Hostname" in line):
+            continue
+
+        parts = line.split()
+        if len(parts) < 6:
+            continue
+
+        clients.append((parts[0], now - seconds(parts[5])))
+
+    return clients
+
+
+
+
+################################################################################
+# Shorthand function to get client count for given time offset interval
+################################################################################
+def client_count(clients: list[tuple[str, int]], offset: int) -> int:
+    return len({ip for ip, last in clients if last >= (now - offset)})
+
+
+
+
+################################################################################
+# Do all the things!
+################################################################################
+def main():
+    clients = chronyc_clients()
+
+    # Ya b0rkt it! :(
+    if clients is None:
+        print("2 \"Chrony clients\" Error querying chronyc")
+        print("2 \"Chrony clients long-term\" Error querying chronyc")
+        print("2 \"Chrony clients total\" Error querying chronyc")
+        return
+
+    total	= len(clients)
+    c_1m	= client_count(clients,        60)
+    c_5m	= client_count(clients,       300)
+    c_15m	= client_count(clients,       900)
+    c_1h	= client_count(clients,     3_600)
+    c_day	= client_count(clients,    86_400)
+    c_week	= client_count(clients,   604_800)
+    c_month	= client_count(clients, 2_592_000)
+
+    print(f"0 \"Chrony clients\" 1m={c_1m}|5m={c_5m}|15m={c_15m}|1h={c_1h} 1m: {c_1m}, 5m: {c_5m}, 15m: {c_15m}, 1h: {c_1h}")
+    print(f"0 \"Chrony clients long-term\" day={c_day}|week={c_week}|month={c_month} Day: {c_day}, Week: {c_week}, Month: {c_month}")
+    print(f"0 \"Chrony clients total\" total={total} Total clients: {total}")
+
+
+
+
+################################################################################
+# Primary entry point
+################################################################################
+if __name__ == "__main__":
+    main()
