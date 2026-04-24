@@ -245,6 +245,12 @@ for f in $SCRIPT_DIR/*; do
 done
 
 
+# GENERATE VERSION FILE WITH BUILD DATE
+println "Generating version file"
+date '+%Y-%m-%d' > $ROOT/etc/version
+cat $ROOT/etc/version
+
+
 
 # INSTALL THE BOOTLOADER
 println "Installing the FreeBSD boot loader"
