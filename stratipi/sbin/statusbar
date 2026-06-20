@@ -31,7 +31,7 @@ while true; do
 	fi
 
 	LOAD=$(sysctl -n vm.loadavg | tr -d '{}' | xargs)
-	TEMP=$(sysctl -n dev.cpu.0.temperature)
+	TEMP=$(sysctl -n dev.cpu.0.temperature 2>/dev/null || echo "n/a")
 
 	ZPOOL=$(
 		zpool list | tail -n 1 |
