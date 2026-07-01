@@ -21,7 +21,8 @@ Stratipi turns a Raspberry Pi into a highly accurate Stratum-1 NTP network time 
   * [Raspberry Pi 3 Model B](https://www.raspberrypi.com/products/raspberry-pi-3-model-b/)
   * [Raspberry Pi 3 Model B+](https://www.raspberrypi.com/products/raspberry-pi-3-model-b-plus/)
   * [Raspberry Pi 4 Model B](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)
-  * [Raspberry Pi 400](https://www.raspberrypi.com/products/raspberry-pi-400/) _(pending upstream kernel bug fix)_
+  * [Raspberry Pi 400](https://www.raspberrypi.com/products/raspberry-pi-400/) _([fixed in FreeBSD 15.1](https://github.com/freebsd/freebsd-src/commit/861deac98c4cd403b39c0d978bf2d39115c9caee))_
+  * [Raspberry Pi Compute Module 4](https://www.raspberrypi.com/products/compute-module-4/) _([pending fix in FreeBSD 15.2](https://github.com/freebsd/freebsd-src/commit/a05af6ddf9016e4ea4f0b361aa674e7ece6fe7ec))_
   * More coming soon!
 * Compatible GPS Receiver
   * [Adafruit Ultimate GPS HAT for Raspberry Pi](https://www.adafruit.com/product/2324)
