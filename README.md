@@ -86,7 +86,7 @@ The dashboard also shows the output of `chronyc tracking`,  `chronyc sourcestats
 > Any GPS reciever that sends NMEA data over serial should be recognized.  
 > Any PPS device connected to GPIO #4 should be recognized for precise time. In the future, this pin will be configurable as well.
 
-**Q) Does Stratipi support PTP?**
+**Q) Does Stratipi support Precision Time Protocol (PTP)?**
 > Yes-ish. It is installed and running by default. However, it has had very minimal testing so far. Additionally, the Raspberry Pi 4 and older hardware do not support `hardware timestamping` on their network cards, so PTP falls back to `software timestamping` which lowers the accuracy.
 
 ---
