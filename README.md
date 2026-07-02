@@ -24,7 +24,7 @@ Stratipi turns a Raspberry Pi into a highly accurate Stratum-1 NTP network time 
   * [Raspberry Pi 400](https://www.raspberrypi.com/products/raspberry-pi-400/) _([fixed in FreeBSD 15.1](https://github.com/freebsd/freebsd-src/commit/861deac98c4cd403b39c0d978bf2d39115c9caee))_
   * [Raspberry Pi Compute Module 4](https://www.raspberrypi.com/products/compute-module-4/) _([pending fix in FreeBSD 15.2](https://github.com/freebsd/freebsd-src/commit/a05af6ddf9016e4ea4f0b361aa674e7ece6fe7ec))_
   * More coming soon!
-* Compatible GPS Receiver
+* Compatible GPS Receiver _(semi-optional, see [FAQ](#faq))_
   * [Adafruit Ultimate GPS HAT for Raspberry Pi](https://www.adafruit.com/product/2324)
   * More in the future..?
 * External GPS Antenna _(optional, for better signal)_
@@ -70,6 +70,24 @@ The dashboard also shows the output of `chronyc tracking`,  `chronyc sourcestats
 `tty-clock` on the middle-left: displays the current system time in UTC.
 
 ![Stratipi Dashboard](https://github.com/user-attachments/assets/1bda3f1b-7b7b-4e52-bb79-0a1b7dce2a2a)
+
+---
+
+## FAQ
+
+**Q) What are the default credentials**
+> Local console via HDMI/USB? `root` _(there will be no password prompt)_  
+> SSH? None, as SSH is not enabled by default.
+
+**Q) Is a GPS Hat required to use this distribution?**
+> No! With the GPS Hat you will have Stratum-1 accuracy, without the hat you will have Stratum-2 or lower accuracy depending on the up stream server's time accuracy.
+
+**Q) Are other GPS Receivers supported?**
+> Any GPS reciever that sends NMEA data over serial should be recognized.  
+> Any PPS device connected to GPIO #4 should be recognized for precise time. In the future, this pin will be configurable as well.
+
+**Q) Does Stratipi support PTP?**
+> Yes-ish. It is installed and running by default. However, it has had very minimal testing so far. Additionally, the Raspberry Pi 4 and older hardware do not support `hardware timestamping` on their network cards, so PTP falls back to `software timestamping` which lowers the accuracy.
 
 ---
 
