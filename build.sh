@@ -2,21 +2,47 @@
 set -eu
 
 
-ZPOOL=stratipi
+# WE MUST SPECIFY WHICH IMAGE WE WANT TO BUILD
+if [ $# -lt 1 ]; then
+	echo "Usage: $0 <target-name> [clean] [-l] [-c <compressor>>" >&2
+	exit 1
+fi
+ZPOOL=$1
+shift
 
-IMAGE_SIZE=3G
 
-VERSION_MAJOR=15
-VERSION_MINOR=1
+# PATHS ARE BASED ON THIS BUILD SCRIPT AND SUBDIR FOR THE BUILD
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+BUILD_DIR="$SCRIPT_DIR/${ZPOOL}"
 
-ARCH=aarch64
+if [ ! -d "$BUILD_DIR" ]; then
+	echo "Error: target directory not found: $BUILD_DIR" >&2
+	exit 1
+fi
+
+
+# LOAD A CONFIG FILE INSIDE THE SUBDIR
+CONFIG_FILE="$BUILD_DIR/config.ini"
+if [ -r "$CONFIG_FILE" ]; then
+	while IFS='=' read -r _key _val; do
+		case "$_key" in
+			\#*|"") continue ;;           # skip comments and blank lines
+			*) eval "${_key}=$_val" ;;       # key from config file becomes the variable name
+		esac
+	done < "$CONFIG_FILE"
+fi
+
+
+# APPLY DEFAULT CONFIGS IF NOT SPECIFIED IN SUBDIR
+ARCH=${ARCH:-amd64}
+VERSION_MAJOR=${VERSION_MAJOR:-15}
+VERSION_MINOR=${VERSION_MINOR:-1}
+IMAGE_SIZE=${IMAGE_SIZE:-7G}
 ABI=FreeBSD:${VERSION_MAJOR}:$ARCH
 OSVERSION=${VERSION_MAJOR}0${VERSION_MINOR}000
 
 LABEL=$(echo "$ZPOOL" | tr '[:lower:]' '[:upper:]')
 
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-BUILD_DIR="$SCRIPT_DIR/${ZPOOL}"
 IMAGE=$SCRIPT_DIR/${ZPOOL}.img
 LOG_FILE=$SCRIPT_DIR/${ZPOOL}.log
 PARTITION=mbr
@@ -40,6 +66,16 @@ done
 println() {
 	printf "\n\033[32m[\033[34m$LABEL\033[32m]\033[1;37m %s\033[0m\n" "$*"
 }
+
+
+# DISPLAY CONFIGURATION SUMMARY
+println "Configuration"
+printf "%-12s %s\n" "ARCH" "$ARCH"
+printf "%-12s %s\n" "FreeBSD" "$VERSION_MAJOR.$VERSION_MINOR ($ABI)"
+printf "%-12s %s\n" "OSVERSION" "$OSVERSION"
+printf "%-12s %s\n" "IMAGE_SIZE" "$IMAGE_SIZE"
+printf "%-12s %s\n" "COMPRESS" "$COMPRESS"
+printf "%-12s %s\n" "PARTITION" "$PARTITION"
 
 
 # SAFER WAY TO UNMOUNT AND BAIL ON ERROR
