@@ -1,0 +1,5 @@
+# provides /usr/local/share/rpi-firmware/* copied to the EFI partition
+rpi-firmware
+
+# provides mkenvimage for building uboot.env on the host
+u-boot-tools

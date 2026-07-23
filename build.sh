@@ -140,13 +140,17 @@ ZROOT=$(dirname $ROOT)
 
 
 # THINGS WE'LL NEED LATER ON IN THE SCRIPT
-println "Installing local build dependencies"
-pkg install -y rpi-firmware u-boot-tools
+BUILDDEPS=$(sed 's/#.*//' "$BUILD_DIR/builddeps" | grep -v '^$' || true)
+if [ -n "$BUILDDEPS" ]; then
+	println "Installing local build dependencies"
+	pkg install -y $BUILDDEPS
+fi
 
 
-# REMOVE THE OLD IMAGE FILE IF IT STILL EXISTS
-rm $IMAGE || true
-rm $IMAGE.zst || true
+# REMOVE THE OLD IMAGE FILES IF THEY STILL EXIST FROM A PREVIOUS BUILD
+println "Cleaning up old image files"
+[ -f "$IMAGE" ] && rm -v "$IMAGE"
+[ -f "$IMAGE.zst" ] && rm -v "$IMAGE.zst"
 
 
 # CREATE A NEW MEMORY DEVICE FOR THE IMAGE FILE
