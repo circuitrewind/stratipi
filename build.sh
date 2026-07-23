@@ -46,6 +46,7 @@ LABEL=$(echo "$ZPOOL" | tr '[:lower:]' '[:upper:]')
 IMAGE=$SCRIPT_DIR/${ZPOOL}.img
 LOG_FILE=$SCRIPT_DIR/${ZPOOL}.log
 PARTITION=${PARTITION:-gpt}
+EFI_SIZE=${EFI_SIZE:-100M}
 DEVICE=""
 ROOT=""
 POOL=""
@@ -164,11 +165,11 @@ println "New Memory Device: $DEVICE"
 println "Creating $PARTITION partition table on $DEVICE"
 gpart create -s $PARTITION $DEVICE
 if [ "$PARTITION" = "mbr" ]; then
-	gpart add -a 4M -t fat32 -s 100M $DEVICE
+	gpart add -a 4M -t fat32 -s $EFI_SIZE $DEVICE
 	gpart add -a 4M -t freebsd $DEVICE
 	SLICE=s
 elif [ "$PARTITION" = "gpt" ]; then
-	gpart add -a 4M -t ms-basic-data -s 100M -l "EFIBOOT" $DEVICE
+	gpart add -a 4M -t ms-basic-data -s $EFI_SIZE -l "EFIBOOT" $DEVICE
 	gpart add -a 4M -t freebsd-zfs -l "${LABEL}" $DEVICE
 	SLICE=p
 else
