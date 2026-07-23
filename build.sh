@@ -116,6 +116,7 @@ cleanup() {
 case "${1-}" in
 	"clean")
 		cleanup
+		rm -f $IMAGE $IMAGE.zst
 		exit 0
 		;;
 esac
