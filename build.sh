@@ -297,7 +297,11 @@ cat $ROOT/etc/version
 # INSTALL THE BOOTLOADER
 println "Installing the FreeBSD boot loader"
 mkdir -p $ROOT/boot/efi/EFI/BOOT/
-cp -v $ROOT/boot/loader.efi $ROOT/boot/efi/EFI/BOOT/bootaa64.efi
+
+case "$ARCH" in
+	aarch64)	cp -v $ROOT/boot/loader.efi $ROOT/boot/efi/EFI/BOOT/bootaa64.efi;;
+	amd64)		cp -v $ROOT/boot/loader.efi $ROOT/boot/efi/EFI/BOOT/BOOTX64.EFI;;
+esac
 
 
 # CREATE ZPOOL SCRUB/TRIM CRONJOB
