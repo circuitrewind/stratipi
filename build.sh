@@ -45,7 +45,7 @@ LABEL=$(echo "$ZPOOL" | tr '[:lower:]' '[:upper:]')
 
 IMAGE=$SCRIPT_DIR/${ZPOOL}.img
 LOG_FILE=$SCRIPT_DIR/${ZPOOL}.log
-PARTITION=mbr
+PARTITION=${PARTITION:-gpt}
 DEVICE=""
 ROOT=""
 POOL=""
