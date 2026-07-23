@@ -43,6 +43,9 @@ OSVERSION=${VERSION_MAJOR}0${VERSION_MINOR}000
 
 LABEL=$(echo "$ZPOOL" | tr '[:lower:]' '[:upper:]')
 
+FREEBSD_RELEASE="releng/$VERSION_MAJOR.$VERSION_MINOR"
+GITHUB_BASE="https://raw.githubusercontent.com/freebsd/freebsd-src/$FREEBSD_RELEASE"
+
 IMAGE=$SCRIPT_DIR/${ZPOOL}.img
 LOG_FILE=$SCRIPT_DIR/${ZPOOL}.log
 PARTITION=${PARTITION:-gpt}
@@ -235,11 +238,15 @@ ln -s /var/cache/$ZPOOL/$ARCH/ $ROOT/var/cache/pkg
 # PREPARE FREEBSD PKG KEYS
 println "Setting up package repositories"
 mkdir -p $ROOT/usr/share/keys/pkg/trusted
-cp -v /usr/share/keys/pkg/trusted/* $ROOT/usr/share/keys/pkg/trusted/
+fetch -o "$ROOT/usr/share/keys/pkg/trusted/pkg.freebsd.org.2013102301" \
+  "$GITHUB_BASE/share/keys/pkg/trusted/pkg.freebsd.org.2013102301"
 
 # PREPARE FREEBSD PKG-BASE KEYS
-mkdir -p $ROOT/usr/share/keys/pkgbase-15/trusted
-cp -v /usr/share/keys/pkgbase-15/trusted/* $ROOT/usr/share/keys/pkgbase-15/trusted/
+mkdir -p $ROOT/usr/share/keys/pkgbase-$VERSION_MAJOR/trusted
+for key in awskms backup-signing; do
+	fetch -o "$ROOT/usr/share/keys/pkgbase-$VERSION_MAJOR/trusted/${key}-$VERSION_MAJOR" \
+		"$GITHUB_BASE/share/keys/pkgbase-$VERSION_MAJOR/trusted/${key}-$VERSION_MAJOR"
+done
 
 # PREPARE FREEBSD PKG CONFIGURATION
 mkdir -p $ROOT/etc/pkg
