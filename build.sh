@@ -50,6 +50,7 @@ IMAGE=$SCRIPT_DIR/${ZPOOL}.img
 LOG_FILE=$SCRIPT_DIR/${ZPOOL}.log
 PARTITION=${PARTITION:-gpt}
 EFI_SIZE=${EFI_SIZE:-100M}
+GPART_ALIGN=${GPART_ALIGN:-1M}
 DEVICE=""
 ROOT=""
 POOL=""
@@ -80,6 +81,7 @@ printf "%-12s %s\n" "OSVERSION" "$OSVERSION"
 printf "%-12s %s\n" "IMAGE_SIZE" "$IMAGE_SIZE"
 printf "%-12s %s\n" "COMPRESS" "$COMPRESS"
 printf "%-12s %s\n" "PARTITION" "$PARTITION"
+printf "%-12s %s\n" "GPART_ALIGN" "$GPART_ALIGN"
 
 
 # SAFER WAY TO UNMOUNT AND BAIL ON ERROR
@@ -168,12 +170,12 @@ println "New Memory Device: $DEVICE"
 println "Creating $PARTITION partition table on $DEVICE"
 gpart create -s $PARTITION $DEVICE
 if [ "$PARTITION" = "mbr" ]; then
-	gpart add -a 4M -t fat32 -s $EFI_SIZE $DEVICE
-	gpart add -a 4M -t freebsd $DEVICE
+	gpart add -a $GPART_ALIGN -t fat32 -s $EFI_SIZE $DEVICE
+	gpart add -a $GPART_ALIGN -t freebsd $DEVICE
 	SLICE=s
 elif [ "$PARTITION" = "gpt" ]; then
-	gpart add -a 4M -t ms-basic-data -s $EFI_SIZE -l "EFIBOOT" $DEVICE
-	gpart add -a 4M -t freebsd-zfs -l "${LABEL}" $DEVICE
+	gpart add -a $GPART_ALIGN -t ms-basic-data -s $EFI_SIZE -l "EFIBOOT" $DEVICE
+	gpart add -a $GPART_ALIGN -t freebsd-zfs -l "${LABEL}" $DEVICE
 	SLICE=p
 else
 	println "Unknown Partition Table Type"
