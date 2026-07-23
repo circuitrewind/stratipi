@@ -218,9 +218,11 @@ mount -t msdosfs "${DEVICE}${SLICE}1" "$ROOT/boot/efi"
 
 
 
-# COPY RASPBERRY PI FIRMWARE TO OUR EFIBOOT PARTITION
-println "Copying firmware to EFI partition"
-cp -vR /usr/local/share/rpi-firmware/* $ROOT/boot/efi/
+# OPTIONAL: copy project-specific EFI files into the boot partition
+if [ -n "$EFI_FILES" ]; then
+	println "Copying EFI files to boot partition"
+	cp -vR $EFI_FILES/* $ROOT/boot/efi/
+fi
 
 
 
