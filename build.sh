@@ -7,14 +7,14 @@ if [ $# -lt 1 ]; then
 	echo "Usage: $0 <target-name> [clean] [-l] [-c <compressor>>" >&2
 	exit 1
 fi
-ZPOOL=$1
+export PROJECT=$1
 shift
 
 
 
 # PATHS ARE BASED ON THIS BUILD SCRIPT AND PROJECT FOR THIS BUILD
 export SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-export BUILD_DIR="$SCRIPT_DIR/${ZPOOL}"
+export BUILD_DIR="$SCRIPT_DIR/${PROJECT}"
 
 if [ ! -d "$BUILD_DIR" ]; then
 	echo "Error: target directory not found: $BUILD_DIR" >&2
@@ -24,7 +24,7 @@ fi
 
 
 # PULL FULL DEPENDENCY TREE FOR THIS PROJECT
-DEPS=$($SCRIPT_DIR/dependency.sh "$ZPOOL")
+DEPS=$($SCRIPT_DIR/dependency.sh "$PROJECT")
 
 
 # ITERATE OVER DEPENDENCIES, AND DO "SOMETHING" WITH THEM
@@ -73,13 +73,13 @@ IMAGE_SIZE=${IMAGE_SIZE:-7G}
 ABI=FreeBSD:${VERSION_MAJOR}:$ARCH
 OSVERSION=${VERSION_MAJOR}0${VERSION_MINOR}000
 
-LABEL=$(echo "$ZPOOL" | tr '[:lower:]' '[:upper:]')
+LABEL=$(echo "$PROJECT" | tr '[:lower:]' '[:upper:]')
 
 FREEBSD_RELEASE="releng/$VERSION_MAJOR.$VERSION_MINOR"
 GITHUB_BASE="https://raw.githubusercontent.com/freebsd/freebsd-src/$FREEBSD_RELEASE"
 
-IMAGE=$SCRIPT_DIR/${ZPOOL}.img
-LOG_FILE=$SCRIPT_DIR/${ZPOOL}.log
+IMAGE=$SCRIPT_DIR/${PROJECT}.img
+LOG_FILE=$SCRIPT_DIR/${PROJECT}.log
 PARTITION=${PARTITION:-gpt}
 EFI_SIZE=${EFI_SIZE:-100M}
 GPART_ALIGN=${GPART_ALIGN:-1M}
@@ -179,7 +179,7 @@ build() {
 
 
 # CREATE OUR TEMPORARY DIRECTORY
-ROOT=$(mktemp -d -t "${ZPOOL}")
+ROOT=$(mktemp -d -t "${PROJECT}")
 POOL=$(basename $ROOT)
 ZROOT=$(dirname $ROOT)
 
@@ -204,8 +204,10 @@ for_dep 'if [ -f "$PROJECT_DIR/pkglist" ]; then
 fi' || exit 1
 
 if [ -n "$BUILDDEPS" ]; then
-	println "Installing build dependencies: $BUILDDEPS"
+	println "Installing build dependencies"
+	(set -x
 	pkg install -y $BUILDDEPS
+	)
 fi
 
 
@@ -249,7 +251,7 @@ gpart show $DEVICE
 # MUST COME BEFORE FAT32 DUE TO MOUNT POINTS
 # SMALL O: ZPOOL PROPERTIES (PAY ATTENTION!)
 # BIG O: ZFS DATASET PROPERTIES
-println "Creating zpool: $ZPOOL ($POOL) on ${DEVICE}${SLICE}2"
+println "Creating zpool: $PROJECT ($POOL) on ${DEVICE}${SLICE}2"
 (set -x
 zpool create -f \
   -o ashift=12 \
@@ -261,7 +263,7 @@ zpool create -f \
   -O checksum=sha256 \
   -t $POOL \
   -R $ZROOT \
-  $ZPOOL "${DEVICE}${SLICE}2"
+  $PROJECT "${DEVICE}${SLICE}2"
 
 zpool set bootfs=$POOL $POOL
 )
@@ -293,11 +295,11 @@ fi
 # CREATE A LOCAL CACHE DIR OUTSIDE OF THIS BUILDER
 # THIS ALSO SPEEDS UP REBUILDING THE IMAGE FOR DEVELOPMENT
 println "Setting up local package cache on host machine"
-mkdir -p /var/cache/$ZPOOL/$ARCH/repos/
+mkdir -p /var/cache/$PROJECT/$ARCH/repos/
 mkdir -p $ROOT/var/cache/
 #mkdir -p $ROOT/var/db/pkg/
-ln -s /var/cache/$ZPOOL/$ARCH/ $ROOT/var/cache/pkg
-#ln -s /var/cache/$ZPOOL/$ARCH/repos/ $ROOT/var/db/pkg/repos
+ln -s /var/cache/$PROJECT/$ARCH/ $ROOT/var/cache/pkg
+#ln -s /var/cache/$PROJECT/$ARCH/repos/ $ROOT/var/db/pkg/repos
 
 
 
@@ -322,7 +324,7 @@ cp -v $BUILD_DIR/etc/pkg/FreeBSD.conf $ROOT/etc/pkg/
 
 # WARNING, DON'T MOVE THIS EARLIER IN THE SCRIPT
 # OR ELSE YOU RISK BREAKING YOUR ENTIRE HOST OPERATING SYSTEM
-METALOG=$ROOT/$ZPOOL.metalog
+METALOG=$ROOT/$PROJECT.metalog
 export METALOG
 export ABI
 export OSVERSION
@@ -330,7 +332,6 @@ export ROOT
 export ZROOT
 export POOL
 export DEVICE
-export ZPOOL
 
 
 
@@ -345,7 +346,7 @@ pkg -r $ROOT -o REPOS_DIR=$ROOT/etc/pkg install -y $PKG_LIST
 
 
 # STORE PACKAGES/VERSIONS USED FOR THE BUILD IN AN AUDIT LOG
-pkg -r $ROOT query '%n-%v' > "$SCRIPT_DIR/$ZPOOL.manifest"
+pkg -r $ROOT query '%n-%v' > "$SCRIPT_DIR/$PROJECT.manifest"
 
 
 # FIX FILE/FOLDER PERMISSIONS FOR CUSTOM USERS
@@ -366,7 +367,7 @@ for_dep 'run_hook "$PROJECT_DIR/pre-install.sh"' || exit 1
 
 
 # INSTALL THE OVERLAY FILESYSTEM
-println "Installing $ZPOOL files"
+println "Installing $PROJECT files"
 for_dep 'for f in "$PROJECT_DIR"/*; do
 	[ ! -d "$f" ] && continue # ONLY DIRECTORIES
 	cp -vRP "$f" $ROOT
