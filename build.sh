@@ -11,9 +11,10 @@ ZPOOL=$1
 shift
 
 
-# PATHS ARE BASED ON THIS BUILD SCRIPT AND SUBDIR FOR THE BUILD
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-BUILD_DIR="$SCRIPT_DIR/${ZPOOL}"
+
+# PATHS ARE BASED ON THIS BUILD SCRIPT AND PROJECT FOR THIS BUILD
+export SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+export BUILD_DIR="$SCRIPT_DIR/${ZPOOL}"
 
 if [ ! -d "$BUILD_DIR" ]; then
 	echo "Error: target directory not found: $BUILD_DIR" >&2
@@ -21,19 +22,50 @@ if [ ! -d "$BUILD_DIR" ]; then
 fi
 
 
-# LOAD A CONFIG FILE INSIDE THE SUBDIR
-CONFIG_FILE="$BUILD_DIR/config.ini"
-if [ -r "$CONFIG_FILE" ]; then
-	while IFS='=' read -r _key _val; do
+
+# PULL FULL DEPENDENCY TREE FOR THIS PROJECT
+DEPS=$($SCRIPT_DIR/dependency.sh "$ZPOOL")
+
+
+# ITERATE OVER DEPENDENCIES, AND DO "SOMETHING" WITH THEM
+for_dep() {
+	_block="$1"; shift
+	if [ -n "$DEPS" ]; then
+		while IFS= read -r proj; do
+			PROJECT="$proj"
+			PROJECT_DIR="$SCRIPT_DIR/$proj"
+			export PROJECT PROJECT_DIR
+			eval "$_block" || return 1
+		done <<EOF
+$DEPS
+EOF
+	fi
+}
+
+
+# RUN A SCRIPT IF IT EXISTS, FAILING ON NON-ZERO EXIT CODE
+run_hook() {
+	if [ -f "$1" ]; then
+		"$@"
+		return $?
+	fi
+	return 0
+}
+
+
+# LOAD CONFIG FILE FROM EACH PROJECT/DEPENDENCY
+for_dep 'if [ -r "$PROJECT_DIR/config" ]; then
+	while IFS="=" read -r _key _val; do
 		case "$_key" in
-			\#*|"") continue ;;           # skip comments and blank lines
-			*) eval "${_key}=$_val" ;;       # key from config file becomes the variable name
+			\#*|"") continue ;;
+			*) eval "${_key}=$_val" ;;
 		esac
-	done < "$CONFIG_FILE"
-fi
+	done < "$PROJECT_DIR/config"
+fi'
 
 
-# APPLY DEFAULT CONFIGS IF NOT SPECIFIED IN SUBDIR
+
+# APPLY DEFAULT CONFIGS IF NOT SPECIFIED IN PROJECTS
 ARCH=${ARCH:-amd64}
 VERSION_MAJOR=${VERSION_MAJOR:-15}
 VERSION_MINOR=${VERSION_MINOR:-1}
@@ -67,10 +99,12 @@ while getopts :lc: opt; do
 done
 
 
+
 # PRETTY PRINT A STATUS LINE
 println() {
 	printf "\n\033[32m[\033[34m$LABEL\033[32m]\033[1;37m %s\033[0m\n" "$*"
 }
+
 
 
 # DISPLAY CONFIGURATION SUMMARY
@@ -84,6 +118,7 @@ printf "%-12s %s\n" "PARTITION" "$PARTITION"
 printf "%-12s %s\n" "GPART_ALIGN" "$GPART_ALIGN"
 
 
+
 # SAFER WAY TO UNMOUNT AND BAIL ON ERROR
 safe_umount() {
 	if mount | awk '{print $3}' | grep -qx "$1"; then
@@ -94,6 +129,7 @@ safe_umount() {
 		}
 	fi
 }
+
 
 
 # SAFER WAY TO ZPOOL EXPORT AND BAIL ON ERROR
@@ -109,6 +145,7 @@ safe_export() {
 }
 
 
+
 # DO ALL THE CLEANUP STUFF
 cleanup() {
 	println "Running cleanup job ..."
@@ -116,6 +153,7 @@ cleanup() {
 	[ -n "$POOL" ] && safe_export $POOL || true
 	mdconfig -d -u $DEVICE 2>/dev/null || true
 }
+
 
 
 # ALLOW TO RUN PARTS OF THIS SCRIPT AUTOMAGICALLY
@@ -126,6 +164,7 @@ case "${1-}" in
 		exit 0
 		;;
 esac
+
 
 
 # INSTALL OUR TRAPS LATE, IN CASE OF CUSTOM COMMAND ABOVE
@@ -145,12 +184,30 @@ POOL=$(basename $ROOT)
 ZROOT=$(dirname $ROOT)
 
 
-# THINGS WE'LL NEED LATER ON IN THE SCRIPT
-BUILDDEPS=$(sed 's/#.*//' "$BUILD_DIR/builddeps" | grep -v '^$' || true)
+
+# COLLECT HOST-LEVEL ITEMS FROM EVERY DEPENDENCY PROJECT (topologically ordered)
+BUILDDEPS=""
+PKG_LIST=""
+
+for_dep 'if [ -f "$PROJECT_DIR/builddeps" ]; then
+	_deps=$(sed "s/#.*//" "$PROJECT_DIR/builddeps" | grep -v "^$" || true)
+	if [ -n "$_deps" ]; then
+		BUILDDEPS="$BUILDDEPS $_deps"
+	fi
+fi' || exit 1
+
+for_dep 'if [ -f "$PROJECT_DIR/pkglist" ]; then
+	_pkgl=$(sed "s/#.*//" "$PROJECT_DIR/pkglist" | grep -v "^$" || true)
+	if [ -n "$_pkgl" ]; then
+		PKG_LIST="$PKG_LIST $_pkgl"
+	fi
+fi' || exit 1
+
 if [ -n "$BUILDDEPS" ]; then
-	println "Installing local build dependencies"
+	println "Installing build dependencies: $BUILDDEPS"
 	pkg install -y $BUILDDEPS
 fi
+
 
 
 # REMOVE THE OLD IMAGE FILES IF THEY STILL EXIST FROM A PREVIOUS BUILD
@@ -159,11 +216,13 @@ println "Cleaning up old image files"
 [ -f "$IMAGE.zst" ] && rm -v "$IMAGE.zst"
 
 
+
 # CREATE A NEW MEMORY DEVICE FOR THE IMAGE FILE
 println "Creating $IMAGE of size $IMAGE_SIZE"
 truncate -s $IMAGE_SIZE $IMAGE
 DEVICE=/dev/$(mdconfig -a -t vnode -f $IMAGE)
 println "New Memory Device: $DEVICE"
+
 
 
 # RECREATE PARTITION TABLE FROM SCRATCH
@@ -210,17 +269,20 @@ echo ''
 zpool list $POOL
 
 
+
 # CREATE AND MOUNT THE MSDOS FAT32 FILE SYSTEM
 println "Creating FAT32 file system on ${DEVICE}${SLICE}1"
 newfs_msdos -F 32 -S 512 -c 1 -L "EFIBOOT" "${DEVICE}${SLICE}1"
 
 
+
+# CREATE PLACE TO DROP UEFI BOOT FILES
 mkdir -p $ROOT/boot/efi
 mount -t msdosfs "${DEVICE}${SLICE}1" "$ROOT/boot/efi"
 
 
 
-# OPTIONAL: copy project-specific EFI files into the boot partition
+# COPY PROJECT EFI FILES INTO BOOT PARTITION
 if [ -n "$EFI_FILES" ]; then
 	println "Copying EFI files to boot partition"
 	cp -vR $EFI_FILES/* $ROOT/boot/efi/
@@ -264,13 +326,22 @@ METALOG=$ROOT/$ZPOOL.metalog
 export METALOG
 export ABI
 export OSVERSION
+export ROOT
+export ZROOT
+export POOL
+export DEVICE
+export ZPOOL
 
 
-# INSTALL PACKAGES
+
+# RUN PRE-PACKAGE HOOK FOR EVERY DEPENDENCY
+for_dep 'run_hook "$PROJECT_DIR/pre-package.sh"' || exit 1
+
+
+# INSTALL PACKAGES FOR EVERY DEPENDENCY
 println "Installing FreeBSD pkgbase and user packages"
-PACKAGES=$(sed 's/#.*//' "$BUILD_DIR/pkglist")
-[ -n "$PACKAGES" ] || { println "No packages to install!"; exit 1; }
-pkg -r $ROOT -o REPOS_DIR=$ROOT/etc/pkg install -y $PACKAGES
+[ -n "$PKG_LIST" ] || { println "No packages to install!"; exit 1; }
+pkg -r $ROOT -o REPOS_DIR=$ROOT/etc/pkg install -y $PKG_LIST
 
 
 # STORE PACKAGES/VERSIONS USED FOR THE BUILD IN AN AUDIT LOG
@@ -283,20 +354,25 @@ println "Fixing file and folder permissions"
 rm $METALOG
 
 
-# BUILDING UBOOT ENV FILE
-println "Building uboot file"
-(set -x
-mkenvimage -s 16384 -o "$BUILD_DIR/boot/efi/uboot.env" "$BUILD_DIR/boot/efi/uboot.txt"
-)
+# RUN POST-PACKAGE HOOK FOR EVERY DEPENDENCY
+for_dep 'run_hook "$PROJECT_DIR/post-package.sh"' || exit 1
+
+
+
+
+# RUN PRE-INSTALL HOOK FOR EVERY DEPENDENCY
+for_dep 'run_hook "$PROJECT_DIR/pre-install.sh"' || exit 1
+
 
 
 # INSTALL THE OVERLAY FILESYSTEM
 println "Installing $ZPOOL files"
-touch "$BUILD_DIR/var/db/last_time"
-for f in "$BUILD_DIR"/*; do
-	[ ! -d "$f" ] && continue
+for_dep 'for f in "$PROJECT_DIR"/*; do
+	[ ! -d "$f" ] && continue # ONLY DIRECTORIES
 	cp -vRP "$f" $ROOT
-done
+done'
+touch "$BUILD_DIR/var/db/last_time"
+
 
 
 # GENERATE VERSION FILE WITH BUILD DATE
@@ -316,17 +392,16 @@ case "$ARCH" in
 esac
 
 
-# CREATE ZPOOL SCRUB/TRIM CRONJOB
-println "Creating zpool scrub and trim cron jobs"
-mkdir -p $ROOT/etc/cron.d/
-echo "@daily	root	/sbin/zpool scrub $ZPOOL" > $ROOT/etc/cron.d/$ZPOOL
-echo "@weekly	root	/sbin/zpool trim $ZPOOL" >> $ROOT/etc/cron.d/$ZPOOL
-cat $ROOT/etc/cron.d/$ZPOOL
+
+# RUN POST-INSTALL HOOK FOR EVERY DEPENDENCY
+for_dep 'run_hook "$PROJECT_DIR/post-install.sh"' || exit 1
+
 
 
 # CLEANUP TEMPORARY CACHE SYMLINK
 println "Unlinking package cache"
 rm $ROOT/var/cache/pkg
+
 
 
 # SET ZFS PROPERTIES TO SOMETHING SANE FOR NORMAL USAGE

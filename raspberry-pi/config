@@ -1,0 +1,13 @@
+
+# Target Architecture
+ARCH=aarch64
+
+# Partition table type
+PARTITION=mbr
+
+# EFI files to copy into the boot partition
+EFI_FILES=/usr/local/share/rpi-firmware
+
+# Partition alignment
+# Industrial SD cards use 4MB "erase" blocks
+GPART_ALIGN=4M

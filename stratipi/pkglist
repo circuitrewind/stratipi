@@ -1,15 +1,3 @@
-#FreeBSD Minimal pkgbase Packages
-FreeBSD-kernel-generic
-FreeBSD-set-minimal
-
-#Extra FreeBSD pkgbase Packages
-FreeBSD-console-tools
-FreeBSD-bsdconfig
-FreeBSD-ssh
-FreeBSD-pf
-FreeBSD-ipf
-FreeBSD-ipfw
-
 #Extra Helper Stuff
 python
 logrotate
