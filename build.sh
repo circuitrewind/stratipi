@@ -367,8 +367,7 @@ for_dep 'run_hook "$PROJECT_DIR/pre-install.sh"' || exit 1
 
 
 # INSTALL THE OVERLAY FILESYSTEM
-println "Installing $PROJECT files"
-for_dep 'for f in "$PROJECT_DIR"/*; do
+for_dep 'println "Installing files for $PROJECT"; for f in "$PROJECT_DIR"/*; do
 	[ ! -d "$f" ] && continue # ONLY DIRECTORIES
 	cp -vRP "$f" $ROOT
 done'
