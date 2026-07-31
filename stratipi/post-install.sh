@@ -9,3 +9,7 @@ mkdir -p "$ROOT/etc/cron.d/"
 
 echo "@daily	root	/sbin/zpool scrub $PROJECT" > "$ROOT/etc/cron.d/$PROJECT"
 echo "@weekly	root	/sbin/zpool trim $PROJECT" >> "$ROOT/etc/cron.d/$PROJECT"
+
+
+# SEED CLOCK ON RASPBERRY PI (NO RTC)
+touch "$ROOT/var/db/last_time"
