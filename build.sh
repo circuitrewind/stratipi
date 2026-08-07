@@ -7,7 +7,7 @@ if [ $# -lt 1 ]; then
 	echo "Usage: $0 <target-name> [clean] [-l] [-c <compressor>>" >&2
 	exit 1
 fi
-export PROJECT=$1
+export PROJECT=${1%/}
 shift
 
 
@@ -84,6 +84,8 @@ PARTITION=${PARTITION:-gpt}
 EFI_SIZE=${EFI_SIZE:-100M}
 GPART_ALIGN=${GPART_ALIGN:-1M}
 DEVICE=""
+STAGING=""
+VDEV=""
 ROOT=""
 POOL=""
 
@@ -152,6 +154,7 @@ cleanup() {
 	[ -n "$ROOT" ] && safe_umount "$ROOT/boot/efi" || true
 	[ -n "$POOL" ] && safe_export $POOL || true
 	mdconfig -d -u $DEVICE 2>/dev/null || true
+	[ -n "$STAGING" ] && rm -rf "$STAGING"
 }
 
 
@@ -160,7 +163,7 @@ cleanup() {
 case "${1-}" in
 	"clean")
 		cleanup
-		rm -f $IMAGE $IMAGE.zst
+		rm -f $IMAGE ${IMAGE}.zst ${SCRIPT_DIR}/${PROJECT}.iso
 		exit 0
 		;;
 esac
@@ -219,31 +222,47 @@ println "Cleaning up old image files"
 
 
 
-# CREATE A NEW MEMORY DEVICE FOR THE IMAGE FILE
+# CREATE AND SIZE THE IMAGE FILE (common to all partition types)
 println "Creating $IMAGE of size $IMAGE_SIZE"
 truncate -s $IMAGE_SIZE $IMAGE
+
+
+# CREATE A NEW MEMORY DEVICE AND PARTITION TABLE FOR ALL PATHS
 DEVICE=/dev/$(mdconfig -a -t vnode -f $IMAGE)
-println "New Memory Device: $DEVICE"
 
-
-
-# RECREATE PARTITION TABLE FROM SCRATCH
-println "Creating $PARTITION partition table on $DEVICE"
-gpart create -s $PARTITION $DEVICE
-if [ "$PARTITION" = "mbr" ]; then
-	gpart add -a $GPART_ALIGN -t fat32 -s $EFI_SIZE $DEVICE
-	gpart add -a $GPART_ALIGN -t freebsd $DEVICE
-	SLICE=s
-elif [ "$PARTITION" = "gpt" ]; then
-	gpart add -a $GPART_ALIGN -t ms-basic-data -s $EFI_SIZE -l "EFIBOOT" $DEVICE
+if [ "$PARTITION" = "iso" ]; then
+	# ISO always uses GPT with a single ZFS partition
+	println "Creating GPT on ISO disk image: $DEVICE"
+	gpart create -s GPT $DEVICE
 	gpart add -a $GPART_ALIGN -t freebsd-zfs -l "${LABEL}" $DEVICE
 	SLICE=p
+
 else
-	println "Unknown Partition Table Type"
-	exit 1
+	# Non-ISO: use the requested partition table type (mbr or gpt)
+	println "Creating $PARTITION partition table on disk image: $DEVICE"
+	gpart create -s $PARTITION $DEVICE
+	if [ "$PARTITION" = "mbr" ]; then
+		gpart add -a $GPART_ALIGN -t fat32 -s $EFI_SIZE $DEVICE
+		gpart add -a $GPART_ALIGN -t freebsd $DEVICE
+		SLICE=s
+	elif [ "$PARTITION" = "gpt" ]; then
+		gpart add -a $GPART_ALIGN -t ms-basic-data -s $EFI_SIZE -l "EFIBOOT" $DEVICE
+		gpart add -a $GPART_ALIGN -t freebsd-zfs -l "${LABEL}" $DEVICE
+		SLICE=p
+	else
+		echo "Error: unknown partition table type: $PARTITION" >&2
+		exit 1
+	fi
 fi
+
 echo ""
 gpart show $DEVICE
+
+if [ "$PARTITION" = "iso" ]; then
+	VDEV=${DEVICE}${SLICE}1   # ZFS is the only partition
+else
+	VDEV=${DEVICE}${SLICE}2   # ZFS is second in both mbr and gpt layouts
+fi
 
 
 
@@ -251,7 +270,7 @@ gpart show $DEVICE
 # MUST COME BEFORE FAT32 DUE TO MOUNT POINTS
 # SMALL O: ZPOOL PROPERTIES (PAY ATTENTION!)
 # BIG O: ZFS DATASET PROPERTIES
-println "Creating zpool: $PROJECT ($POOL) on ${DEVICE}${SLICE}2"
+println "Creating zpool: $PROJECT ($POOL) on $VDEV"
 (set -x
 zpool create -f \
   -o ashift=12 \
@@ -263,7 +282,7 @@ zpool create -f \
   -O checksum=sha256 \
   -t $POOL \
   -R $ZROOT \
-  $PROJECT "${DEVICE}${SLICE}2"
+  $PROJECT "$VDEV"
 
 zpool set bootfs=$POOL $POOL
 )
@@ -272,7 +291,9 @@ zpool list $POOL
 
 
 
-# CREATE AND MOUNT THE MSDOS FAT32 FILE SYSTEM
+# CREATE AND MOUNT THE MSDOS FAT32 FILE SYSTEM (skip for iso — mkimg builds EFI image from staging dir)
+if [ "$PARTITION" != "iso" ]; then
+
 println "Creating FAT32 file system on ${DEVICE}${SLICE}1"
 newfs_msdos -F 32 -S 512 -c 1 -L "EFIBOOT" "${DEVICE}${SLICE}1"
 
@@ -288,6 +309,8 @@ mount -t msdosfs "${DEVICE}${SLICE}1" "$ROOT/boot/efi"
 if [ -n "$EFI_FILES" ]; then
 	println "Copying EFI files to boot partition"
 	cp -vR $EFI_FILES/* $ROOT/boot/efi/
+fi
+
 fi
 
 
@@ -318,7 +341,7 @@ done
 
 # PREPARE FREEBSD PKG CONFIGURATION
 mkdir -p $ROOT/etc/pkg
-cp -v $BUILD_DIR/etc/pkg/FreeBSD.conf $ROOT/etc/pkg/
+cp -v $SCRIPT_DIR/freebsd/etc/pkg/FreeBSD.conf $ROOT/etc/pkg/
 
 
 
@@ -371,8 +394,6 @@ for_dep 'println "Installing files for $PROJECT"; for f in "$PROJECT_DIR"/*; do
 	[ ! -d "$f" ] && continue # ONLY DIRECTORIES
 	cp -vRP "$f" $ROOT
 done'
-touch "$BUILD_DIR/var/db/last_time"
-
 
 
 # GENERATE VERSION FILE WITH BUILD DATE
@@ -383,6 +404,27 @@ cat $ROOT/etc/version
 
 
 # INSTALL THE BOOTLOADER
+if [ "$PARTITION" = "iso" ]; then
+	println "Staging boot files for ISO build"
+	STAGING=$(mktemp -d -t "${PROJECT}-staging")
+	mkdir -p $STAGING/boot/EFI/BOOT/
+
+	case "$ARCH" in
+		aarch64)	cp -v $ROOT/boot/loader.efi $STAGING/boot/EFI/BOOT/bootaa64.efi;;
+		amd64)		cp -v $ROOT/boot/loader.efi $STAGING/boot/EFI/BOOT/BOOTX64.EFI;;
+	esac
+
+	mkdir -p $STAGING/boot/kernel/
+	if [ -d "$ROOT/boot/kernel" ]; then
+		cp -rvP "$ROOT/boot/kernel/"* $STAGING/boot/kernel/ 2>/dev/null || true
+	fi
+	if [ -f "$ROOT/boot/loader.conf" ]; then
+		cp -v "$ROOT/boot/loader.conf" $STAGING/boot/
+	fi
+	cp -v $ROOT/boot/cdboot $STAGING/cdboot
+
+else
+
 println "Installing the FreeBSD boot loader"
 mkdir -p $ROOT/boot/efi/EFI/BOOT/
 
@@ -390,6 +432,8 @@ case "$ARCH" in
 	aarch64)	cp -v $ROOT/boot/loader.efi $ROOT/boot/efi/EFI/BOOT/bootaa64.efi;;
 	amd64)		cp -v $ROOT/boot/loader.efi $ROOT/boot/efi/EFI/BOOT/BOOTX64.EFI;;
 esac
+
+fi
 
 
 
@@ -428,14 +472,39 @@ zpool history $POOL
 #zpool history -il $POOL
 
 
+# CREATE A DEPLOYABLE ARTIFACT — compress or wrap depending on partition type
+if [ "$PARTITION" = "iso" ]; then
+
+	println "Creating hybrid GPT ISO image"
+
+	# Build CD9660 boot filesystem from staging dir (kernel, loader, modules)
+	makefs -t cd9660 $STAGING/cd9660.img $STAGING || exit 1
+	dd if=$STAGING/cd9660.img of=${DEVICE}${SLICE}1 bs=512 conv=notrunc
+	rm -f $STAGING/cd9660.img
+
+	# Unmount ROOT and export zpool cleanly before assembling final output image
+	safe_umount "$ROOT"
+	zpool export $POOL 2>/dev/null || true
+
+	# mkimg produces hybrid bootable disk image with GPT table + El Torito entries
+	mkimg -f img \
+		-b $STAGING/cdboot \
+		-s gpt \
+		-i 0:cd9660:$STAGING \
+		${SCRIPT_DIR}/${PROJECT}.iso
+
+	# Append ZFS pool data from IMAGE after ISO section for future geom_cd GPT support
+	cat "$IMAGE" >> ${SCRIPT_DIR}/${PROJECT}.iso
+
+else
+	println "Compressing final binary disk image"
+	zstd --fast=1 -T0 $IMAGE -o ${IMAGE}.zst
+fi
+
+
 # CLEANUP ALL THE TEMPORARY STUFF WE DID
 cleanup
 trap - EXIT INT TERM
-
-
-# CREATE A COMPRESSED DEPLOYABLE IMAGE
-println "Compressing final binary disk image"
-zstd --fast=1 -T0 $IMAGE -o $IMAGE.zst
 
 
 # END OUR CUSTOM BUILD FUNCTION
