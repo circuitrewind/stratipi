@@ -1,0 +1,6 @@
+
+# Partition table type
+PARTITION=iso
+
+# Disk image size
+IMAGE_SIZE=4G
