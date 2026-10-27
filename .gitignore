@@ -3,3 +3,4 @@
 *.img.zst
 *.manifest
 *.log
+*.sublime-workspace
