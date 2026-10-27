@@ -109,7 +109,7 @@ On a FreeBSD 15.0 or newer system, run the following:
 ```
 git clone https://github.com/circuitrewind/stratipi.git
 cd stratipi
-./build.sh
+./build.sh stratipi
 ```
 Yes, it is literally that simple and easy to run the build process to generate your own disk image file!
 
