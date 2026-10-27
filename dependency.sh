@@ -1,4 +1,6 @@
 #!/bin/sh
+
+
 # dependency.sh — resolve a project's dependencies (and their transitive deps)
 # recursively, with dedup and topological ordering.
 #
@@ -13,26 +15,33 @@
 #
 # Produces a flat, deduplicated, topologically-sorted list of project names
 # on stdout: a project always appears after every project it depends on.
-#
-# Pure POSIX sh — no temp files, no bashisms.
+
+
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+
 
 if [ $# -ne 1 ]; then
 	echo "Usage: $0 <project_name>" >&2
 	exit 1
 fi
 
+
 PROJECTS_DIR="${PROJECTS_DIR:-$SCRIPT_DIR}"
 
-V=""    # |proj1||proj2|…  visited / dedup set
-R=""    # result buffer (newline-separated)
 
-done_add() {       # add a project to the result after all its deps resolved
+V=""	# |proj1||proj2|…  visited / dedup set
+R=""	# result buffer (newline-separated)
+
+
+# add a project to the result after all its deps resolved
+done_add() {
 	R="$R$1"$'\n'
 }
 
-go() {             # resolve dependencies recursively (DFS, post-order)
+
+# resolve dependencies recursively (DFS, post-order)
+go() {
 	[ -z "$1" ] && return
 
 	# Dedup check — pipe anchors prevent false matches (|boot| won't match
@@ -49,9 +58,12 @@ go() {             # resolve dependencies recursively (DFS, post-order)
 		done < "$dep_file"
 	fi
 
-	done_add "$1"   # all deps resolved — record this project
+	# all deps resolved — record this project
+	done_add "$1"
 }
 
+
 go "$1"
+
 
 printf '%s' "$R"

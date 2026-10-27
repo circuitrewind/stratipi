@@ -252,7 +252,7 @@ fi
 echo ""
 gpart show $DEVICE
 
-VDEV=${DEVICE}${SLICE}2   # ZFS is second in both mbr and gpt layouts
+VDEV=${DEVICE}${SLICE}2
 
 
 
@@ -264,16 +264,16 @@ VDEV=${DEVICE}${SLICE}2   # ZFS is second in both mbr and gpt layouts
 println "Creating zpool: $PROJECT ($POOL) on $VDEV"
 (set -x
 zpool create -f \
-  -o ashift=12 \
-  -o autotrim=off \
-  -O atime=off \
-  -O recordsize=16M \
-  -O compression=$COMPRESS \
-  -O sync=disabled \
-  -O checksum=sha256 \
-  -t $POOL \
-  -R $ZROOT \
-  $PROJECT "$VDEV"
+	-o ashift=12 \
+	-o autotrim=off \
+	-O atime=off \
+	-O recordsize=16M \
+	-O compression=$COMPRESS \
+	-O sync=disabled \
+	-O checksum=sha256 \
+	-t $POOL \
+	-R $ZROOT \
+	$PROJECT "$VDEV"
 
 zpool set bootfs=$POOL $POOL
 )
@@ -316,7 +316,7 @@ ln -s /var/cache/$PROJECT/$ARCH/ $ROOT/var/cache/pkg
 println "Setting up package repositories"
 mkdir -p $ROOT/usr/share/keys/pkg/trusted
 fetch -o "$ROOT/usr/share/keys/pkg/trusted/pkg.freebsd.org.2013102301" \
-  "$GITHUB_BASE/share/keys/pkg/trusted/pkg.freebsd.org.2013102301"
+	"$GITHUB_BASE/share/keys/pkg/trusted/pkg.freebsd.org.2013102301"
 
 # PREPARE FREEBSD PKG-BASE KEYS
 mkdir -p $ROOT/usr/share/keys/pkgbase-$VERSION_MAJOR/trusted
@@ -415,10 +415,10 @@ rm $ROOT/var/cache/pkg
 println "Setting 'sane' zpool options for daily usage"
 (set -x
 zfs set \
-  compression=on \
-  recordsize=128k \
-  sync=standard \
-  $POOL
+	compression=on \
+	recordsize=128k \
+	sync=standard \
+	$POOL
 )
 
 
