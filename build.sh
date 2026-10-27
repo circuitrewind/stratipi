@@ -312,18 +312,18 @@ ln -s /var/cache/$PROJECT/$ARCH/ $ROOT/var/cache/pkg
 
 
 
-# PREPARE FREEBSD PKG KEYS
+# PRE-COPY KEYS NEEDED FOR PKG / PKGBASE
 println "Setting up package repositories"
-mkdir -p $ROOT/usr/share/keys/pkg/trusted
-fetch -o "$ROOT/usr/share/keys/pkg/trusted/pkg.freebsd.org.2013102301" \
-	"$GITHUB_BASE/share/keys/pkg/trusted/pkg.freebsd.org.2013102301"
+KEY_SRC=$SCRIPT_DIR/freebsd/usr/share/keys
+KEY_DST=$ROOT/usr/share/keys
+
+# PREPARE FREEBSD PKG KEYS
+mkdir -p $KEY_DST/pkg/
+cp -vR $KEY_SRC/pkg/* $KEY_DST/pkg/
 
 # PREPARE FREEBSD PKG-BASE KEYS
-mkdir -p $ROOT/usr/share/keys/pkgbase-$VERSION_MAJOR/trusted
-for key in awskms backup-signing; do
-	fetch -o "$ROOT/usr/share/keys/pkgbase-$VERSION_MAJOR/trusted/${key}-$VERSION_MAJOR" \
-		"$GITHUB_BASE/share/keys/pkgbase-$VERSION_MAJOR/trusted/${key}-$VERSION_MAJOR"
-done
+mkdir -p $KEY_DST/pkgbase-$VERSION_MAJOR/
+cp -vR $KEY_SRC/pkgbase-$VERSION_MAJOR/* $KEY_DST/pkgbase-$VERSION_MAJOR/
 
 # PREPARE FREEBSD PKG CONFIGURATION
 mkdir -p $ROOT/etc/pkg
