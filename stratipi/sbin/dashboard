@@ -35,7 +35,8 @@ $TMUX resize-pane -t $RIGHT1 -x 80
 $TMUX resize-pane -t $RIGHT2 -x 40 -y 13
 
 # Set the logo height
-$TMUX resize-pane -t $LEFT1 -y 8
+# Moved to bottom due to tmux layouts being stubborn
+# $TMUX resize-pane -t $LEFT1 -y 8
 
 # Set "chrony sources / sourcestats" height
 $TMUX resize-pane -t $BOTTOM1 -y 8
@@ -87,6 +88,9 @@ guard $RIGHT3	"/sbin/dash-clients"
 guard $BOTTOM1	"/sbin/dash-chrony"
 guard $BOTTOM2	"/sbin/statusbar"
 
+# Set the logo height
+# Moved to bottom due to tmux layouts being stubborn
+$TMUX resize-pane -t $LEFT1 -y 8
 
 # Attach
 $TMUX -u -2 attach-session -t $SESSION -r
