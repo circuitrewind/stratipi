@@ -12,22 +12,15 @@ CONFIG_AUTOBOOT_KEYED=y
 CONFIG_AUTOBOOT_PROMPT="Autobooting in %d seconds, press \"<Esc>\" to stop\n"
 CONFIG_AUTOBOOT_STOP_STR="\x1b"
 CONFIG_AUTOBOOT_DELAY_STR=""
-CONFIG_AUTOBOOT_STOP_STR_ENABLE=y
 
-# ONLY USE HDMI/USB FOR CONSOLE, NOT SERIAL
+# HDMI MUX CONSOLE OVERRIDES (Bypasses Kconfig dependency tracking)
 CONFIG_CONSOLE_MUX=y
 CONFIG_SYS_CONSOLE_IS_IN_ENV=y
 CONFIG_SYS_DEVICE_NULLDEV=y
-CONFIG_STD_DEVICES_SETTINGS="stdin=usbkbd,nulldev;stdout=vidconsole,nulldev;stderr=vidconsole,nulldev"
 
-# DISABLE TRYING TO SEND DEBUG DATA TO SERIAL
-CONFIG_DEBUG_UART=n
-CONFIG_DEBUG_UART_PL011=n
+# DYNAMIC RESOLUTION FIX WITH 32-BIT COLOR INVERSION 
+# Passing just 'video=le:1' forces the 32-bit byte swap while inheriting config.txt resolution
+CONFIG_PREBOOT="setenv videomode video=le:1; setenv stdout vidconsole,nulldev; setenv stderr vidconsole,nulldev; setenv stdin usbkbd,nulldev; bcm2835_video_probe"
 
-# DISABLE SERIAL DRIVERS IN U-BOOT
-# SERIAL IS GPS, NOT CONSOLE!
-CONFIG_SERIAL_PRESENT=y
-CONFIG_DM_SERIAL=n
-CONFIG_PL011_SERIAL=n
-CONFIG_BCM283X_PL011_SERIAL=n
-
+# DISABLE UART DEBUG BROADCASTS
+CONFIG_DEBUG_UART_SKIP_INIT=y
