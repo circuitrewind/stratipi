@@ -1,5 +1,9 @@
 #!/bin/sh
 
+BUILD="Build $(cat /etc/version 2>/dev/null)"
+FREEBSD="FreeBSD $(uname -r)"
+LPAD=$((56 - ${#FREEBSD} - ${#BUILD}))
+
 /usr/bin/printf "%s" "$(sed 's/^/   /' /etc/motd)"
-/usr/bin/printf "                  %s\n" "FreeBSD $(uname -r)"
+/usr/bin/printf "  %s%*s%s\n" "$FREEBSD" $LPAD "" "$BUILD"
 /usr/bin/tail -f /dev/null
