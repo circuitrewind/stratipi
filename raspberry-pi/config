@@ -11,3 +11,6 @@ EFI_FILES=/usr/local/share/rpi-firmware
 # Partition alignment
 # Industrial SD cards use 4MB "erase" blocks
 GPART_ALIGN=4M
+
+# Swap zvol
+SWAP=1G

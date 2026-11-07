@@ -103,6 +103,7 @@ STAGING=""
 VDEV=""
 ROOT=""
 POOL=""
+SWAP=${SWAP:-}
 
 
 
@@ -279,6 +280,22 @@ zpool set bootfs=$POOL $POOL
 )
 echo ''
 zpool list $POOL
+
+
+# CREATE SWAP VOLUME IF REQUESTED (non-empty and non-zero)
+if [ -n "$SWAP" ] && [ "$SWAP" != "0" ]; then
+	println "Creating ZFS swap volume: ${SWAP}"
+	(set -x
+	zfs create -s -V "${SWAP}" \
+		-o volblocksize=4K \
+		-o org.freebsd:swap=on \
+		-o primarycache=metadata \
+		-o secondarycache=none \
+		-o checksum=off \
+		-o compression=off \
+		$POOL/swap
+	)
+fi
 
 
 
