@@ -33,6 +33,18 @@ while true; do
 	LOAD=$(sysctl -n vm.loadavg | tr -d '{}' | xargs)
 	TEMP=$(sysctl -n dev.cpu.0.temperature 2>/dev/null || echo "?")
 
+	TOTAL_KB=$(( $(sysctl -n hw.physmem) / 1024 ))
+	FREE_KB=$(($(sysctl -n vm.stats.vm.v_free_count) * $(sysctl -n hw.pagesize) / 1024))
+	USED_KB=$((TOTAL_KB - FREE_KB))
+	if [ $((TOTAL_KB / 1048576)) -ge 1 ]; then
+		USED="$((USED_KB / 1048576))G"
+		TOTAL="$((TOTAL_KB / 1048576))G"
+	else
+		USED="$((USED_KB / 1024))M"
+		TOTAL="$((TOTAL_KB / 1024))M"
+	fi
+	MEM="${TXT}${USED}${RST}/${TXT}${TOTAL}${RST}"
+
 	ZPOOL=$(
 		zpool list 2>/dev/null | tail -n 1 |
 		awk -v t="$TXT" -v r="$RST" '{print t $3 r "/" t $2 r}'
@@ -40,11 +52,12 @@ while true; do
 	[ -z "$ZPOOL" ] && ZPOOL="${TXT}?${RST}/${TXT}?${RST}"
 
 	# Print status line
-	printf "\t%b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b${CLR}\r" \
+	printf "    %b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b  $VRT  %b${CLR}\r" \
 		"${TTL}Terminal${RST} ${ALT}+${INV}F1${RST} - ${ALT}+${INV}F7${RST}" \
 		"${TTL}Status${RST} ${ALT}+${INV}F8${RST}" \
 		"${TTL}Load${RST} ${TXT}$LOAD${RST}" \
 		"${TTL}Temp${RST} ${TXT}$TEMP${RST}" \
+		"${TTL}Mem${RST} ${TXT}$MEM${RST}" \
 		"${TTL}ZFS${RST} $ZPOOL" \
 		"${TTL}IP${RST} ${TXT}$IP${RST}"
 
