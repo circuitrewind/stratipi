@@ -1,3 +1,4 @@
 #FreeBSD Minimal pkgbase Packages
 FreeBSD-kernel-generic
 FreeBSD-set-minimal
+FreeBSD-local-unbound
