@@ -32,4 +32,8 @@ awk -v root="$ROOT_DS" '
     END {
         if (ds != "") print opts, ds
     }
-' "$INI_FILE" | xargs -L 1 zfs create
+' "$INI_FILE" | while IFS= read -r args; do
+    cmd="zfs create $args"
+    printf '%s\n' "$cmd"
+    eval "$cmd"
+done

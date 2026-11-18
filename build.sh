@@ -282,6 +282,13 @@ echo ''
 zpool list $POOL
 
 
+# SCAN EACH DEPENDENCY FOR A "datasets" FILE, CALL ZFS.SH FOR EACH ONE
+for_dep 'if [ -f "$PROJECT_DIR/datasets" ]; then
+	println "Creating datasets from $PROJECT"
+	$SCRIPT_DIR/zfs.sh "$PROJECT_DIR/datasets" $POOL
+fi'
+
+
 # CREATE SWAP VOLUME IF REQUESTED (non-empty and non-zero)
 if [ -n "$SWAP" ] && [ "$SWAP" != "0" ]; then
 	println "Creating ZFS swap volume: ${SWAP}"
