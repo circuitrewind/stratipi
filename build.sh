@@ -168,7 +168,7 @@ cleanup() {
 case "${1-}" in
 	"clean")
 		cleanup
-		rm -f $IMAGE ${IMAGE}.zst
+		rm -f $IMAGE ${IMAGE}.zst ${PROJECT}.zfs
 		exit 0
 		;;
 esac
@@ -224,6 +224,7 @@ fi
 println "Cleaning up old image files"
 [ -f "$IMAGE" ] && rm -v "$IMAGE"
 [ -f "$IMAGE.zst" ] && rm -v "$IMAGE.zst"
+[ -f "$PROJECT.zfs" ] && rm -v "$PROJECT.zfs"
 
 
 
@@ -233,7 +234,7 @@ truncate -s $IMAGE_SIZE $IMAGE
 
 
 # CREATE A NEW MEMORY DEVICE AND PARTITION TABLE FOR ALL PATHS
-DEVICE=/dev/$(mdconfig -a -t vnode -f $IMAGE)
+DEVICE=/dev/$(mdconfig -a -t vnode -o async -f $IMAGE)
 
 println "Creating $PARTITION partition table on disk image: $DEVICE"
 gpart create -s $PARTITION $DEVICE
@@ -262,7 +263,7 @@ VDEV=${DEVICE}${SLICE}2
 # MUST COME BEFORE FAT32 DUE TO MOUNT POINTS
 # SMALL O: ZPOOL PROPERTIES (PAY ATTENTION!)
 # BIG O: ZFS DATASET PROPERTIES
-println "Creating zpool: $PROJECT ($POOL) on $VDEV"
+println "Creating ZFS zpool: $PROJECT ($POOL) on $VDEV"
 (set -x
 zpool create -f \
 	-o ashift=12 \
@@ -272,11 +273,10 @@ zpool create -f \
 	-O compression=$COMPRESS \
 	-O sync=disabled \
 	-O checksum=sha256 \
+	-O mountpoint=none \
 	-t $POOL \
-	-R $ZROOT \
+	-R $ZROOT/$POOL \
 	$PROJECT "$VDEV"
-
-zpool set bootfs=$POOL $POOL
 )
 echo ''
 zpool list $POOL
@@ -284,9 +284,17 @@ zpool list $POOL
 
 # SCAN EACH DEPENDENCY FOR A "datasets" FILE, CALL ZFS.SH FOR EACH ONE
 for_dep 'if [ -f "$PROJECT_DIR/datasets" ]; then
-	println "Creating datasets from $PROJECT"
+	println "Creating ZFS datasets for $PROJECT"
 	$SCRIPT_DIR/zfs.sh "$PROJECT_DIR/datasets" $POOL
 fi'
+
+
+# SET BOOTFS TO ROOT DATASET
+println "Setting up ZFS boot environment"
+(set -x
+zpool set bootfs=$POOL/ROOT/default $POOL
+zfs mount -o altroot=$ZROOT $POOL/ROOT/default
+)
 
 
 # CREATE SWAP VOLUME IF REQUESTED (non-empty and non-zero)
@@ -447,10 +455,15 @@ zfs set \
 
 
 # TAKE FACTORY RESET SNAPSHOT
-println "Taking 'factory reset' snapshot"
+println "Taking 'factory reset' ZFS snapshot"
 (set -x
 zfs snapshot -r $POOL@factory
 )
+
+
+# SEND ROOT/DATASET SNAPSHOT TO BACKUP FILE
+println "Exporting ZFS snapshot to $PROJECT.zfs"
+zfs send -cep $POOL/ROOT/default@factory | zstd --fast=1 -T0 > "$SCRIPT_DIR/$PROJECT.zfs"
 
 
 # SHOW ZPOOL HISTORY AS A FINAL AUDITING STEP
