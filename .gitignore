@@ -1,6 +1,7 @@
 *.iso
 *.img
 *.img.zst
+*.zfs
 *.manifest
 *.log
 *.sublime-workspace
