@@ -449,7 +449,7 @@ zfs set \
 # TAKE FACTORY RESET SNAPSHOT
 println "Taking 'factory reset' snapshot"
 (set -x
-zfs snapshot $POOL@factory
+zfs snapshot -r $POOL@factory
 )
 
 
