@@ -8,6 +8,11 @@ canmount=noauto
 [/home]
 mountpoint=/home
 
+[/tmp]
+mountpoint=/tmp
+exec=on
+setuid=off
+
 [/usr]
 mountpoint=/usr
 canmount=off
@@ -24,17 +29,19 @@ mountpoint=/var
 canmount=off
 
 [/var/audit]
-setuid=off
 exec=off
+setuid=off
 
 [/var/crash]
-setuid=off
 exec=off
+setuid=off
 
 [/var/log]
-setuid=off
 exec=off
+setuid=off
 
 [/var/mail]
 atime=on
 
+[/var/tmp]
+setuid=off
