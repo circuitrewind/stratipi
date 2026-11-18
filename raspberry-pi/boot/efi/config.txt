@@ -41,3 +41,7 @@ dtparam=sd_overclock=100
 [cm4]
 # Enable USB 2.0 ports on CM4
 dtoverlay=dwc2,dr_mode=host
+
+
+[pi5]
+device_tree_address=
