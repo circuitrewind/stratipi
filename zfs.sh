@@ -10,10 +10,14 @@ INI_FILE="$1"
 ROOT_DS="${2%/}" # Strip trailing slash if passed (e.g., zroot/ -> zroot)
 
 awk -v root="$ROOT_DS" '
+    function emit() {
+        if (ds != "") print (opts == "" ? ds : opts " " ds)
+    }
+
     /^[[:space:]]*(#|;|$)/ { next }
 
     /^[[:space:]]*\[.*\][[:space:]]*$/ {
-        if (ds != "") print opts, ds
+        emit()
 
         # Extract header inside [...] and strip leading/trailing slashes
         sub(/^[[:space:]]*\[[\/]*/, "")
@@ -26,14 +30,13 @@ awk -v root="$ROOT_DS" '
 
     /=/ {
         gsub(/^[[:space:]]+|[[:space:]]+$/, "")
-        opts = opts " -o " $0
+        opts = (opts == "" ? "" : opts " ") "-o " $0
     }
 
     END {
-        if (ds != "") print opts, ds
+        emit()
     }
 ' "$INI_FILE" | while IFS= read -r args; do
-    cmd="zfs create $args"
-    printf '%s\n' "$cmd"
-    eval "$cmd"
+    printf 'zfs create %s\n' "$args"
+    zfs create $args
 done
