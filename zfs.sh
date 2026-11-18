@@ -37,6 +37,8 @@ awk -v root="$ROOT_DS" '
         emit()
     }
 ' "$INI_FILE" | while IFS= read -r args; do
-    printf 'zfs create %s\n' "$args"
-    zfs create $args
+    printf 'zfs create -u %s\n' "$args"
+    zfs create -u $args
 done
+
+zfs mount -R $ROOT_DS
