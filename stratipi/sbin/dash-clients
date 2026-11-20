@@ -21,7 +21,7 @@ while true; do
 		else { s=num }
 		print $1, $2, $6, s
 
-	}' | sort -h -k4,4n | head -n 12 | awk '{print $1 "," $2 "," $3}'
+	}' | sort -h -k4,4n -k2,2nr | head -n 12 | awk '{print $1 "," $2 "," $3}'
 	) | column -s, -t | sed "s/$/$CEOL/" | printf "%s" "$(cat)"
 
 	printf "\033[J"
